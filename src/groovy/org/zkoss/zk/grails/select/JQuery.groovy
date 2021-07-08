@@ -1,12 +1,13 @@
 package org.zkoss.zk.grails.select
 
-import java.util.List;
+import java.util.List
 
 import org.zkoss.zk.ui.Component
 import org.zkoss.zk.ui.event.EventListener
 import org.zkoss.zk.ui.AbstractComponent
 import org.zkoss.zk.ui.select.Selectors
-import org.zkoss.zk.ui.Page;
+import org.zkoss.zk.ui.Page
+import org.zkoss.zkplus.databind.DataBinder
 
 public class JQuery {
 
@@ -19,17 +20,24 @@ public class JQuery {
         this.components = comp;
     }
 
-    def on(String eventName, c) {
+    def on(String name, c) {
+
+        if(name=="ok") {
+            name = name.toUpperCase()
+        }
+
+        def eventName = "on" + name.capitalize()
+
         if(c instanceof Closure)  {
             components.each { comp ->
                 c.resolveStrategy = Closure.DELEGATE_FIRST
                 c.delegate = comp
                 def listener = new JQueryEventListener(handler: c)
-                comp.addEventListener("on" + eventName.capitalize(), listener)
+                comp.addEventListener(eventName, listener)
             }
         } else if(c instanceof String) {
             components.each { comp ->
-                comp.setWidgetListener("on" + eventName.capitalize(), c.toString())
+                comp.setWidgetListener(eventName, c.toString())
             }
         }
         return this
@@ -50,13 +58,28 @@ public class JQuery {
             if(comp) {
                 if(comp.hasProperty("text"))  {
                     comp.text  = val
-                }
-                if(comp.hasProperty("label")) {
+                } else if(comp.hasProperty("label")) {
                     comp.label = val
-                }
-                if(comp.hasProperty("value")) {
+                } else if(comp.hasProperty("value")) {
                     comp.value = val
                 }
+            }
+        }
+        return this
+    }
+
+    def val() {
+        def comp = components?.get(0)
+        if(comp) {
+            return comp.value
+        }
+        return null
+    }
+
+    def val(Object value) {
+        components?.each { comp ->
+            if(comp) {
+                comp.value = value
             }
         }
         return this
@@ -183,6 +206,35 @@ public class JQuery {
             comp.visible = true
         }
         return this
+    }
+
+    def link(obj, map) {
+
+        if(obj == null) return
+
+        def comp = components?.get(0)
+        if (comp) {
+            def binder = new DataBinder()
+            comp.setAttribute('$JQ_BINDER$', binder, Component.COMPONENT_SCOPE)
+            map.each { expr, cid ->
+                def c = Selectors.find(comp, cid)[0]
+                if(c) {
+                    binder.addBinding(c, 'value', 'root.' + expr)
+                } else {
+                    // LOG for warning
+                }
+            }
+            binder.bindBean('root', obj)
+            binder.loadAll()
+        }
+
+    }
+
+    def unlink() {
+        def comp = components?.get(0)
+        if (comp) {
+            comp.removeAttribute('$JQ_BINDER$', Component.COMPONENT_SCOPE)
+        }
     }
 
     static JQuery select(root, Object[] args) {

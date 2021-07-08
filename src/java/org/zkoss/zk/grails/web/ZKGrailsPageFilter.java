@@ -261,6 +261,9 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             if(content instanceof GSPSitemeshPage) {
                 GSPSitemeshPage page = (GSPSitemeshPage)content;
                 String pageContent = page.getPage();
+                if(pageContent == null) {
+                    return;
+                }
                 String contextPath = request.getContextPath();
                 //
                 // src="/zello/zkau/

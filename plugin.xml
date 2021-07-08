@@ -1,4 +1,4 @@
-<plugin name='zk' version='2.0.0' grailsVersion='2.0 &gt; *'>
+<plugin name='zk' version='2.0.2' grailsVersion='2.0 &gt; *'>
   <author>Chanwit Kaewkasi</author>
   <authorEmail>chanwit@gmail.com</authorEmail>
   <title>ZKGrails: ZK plugin for Grails</title>
@@ -61,11 +61,9 @@ and seamlessly integrates them with Grails' infrastructures.
     <resource>zk.hello.HelloViewModel</resource>
   </resources>
   <repositories>
-    <repository name='http://grails.org/plugins' url='http://grails.org/plugins' />
     <repository name='grailsCentral' url='http://grails.org/plugins' />
     <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
     <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
-    <repository name='http://mavensync.zkoss.org/maven2/' url='http://mavensync.zkoss.org/maven2/' />
   </repositories>
   <dependencies>
     <test>
@@ -73,8 +71,8 @@ and seamlessly integrates them with Grails' infrastructures.
     </test>
     <build>
       <dependency group='com.google.code.maven-svn-wagon' name='maven-svn-wagon' version='1.4' />
-      <dependency group='net.java.dev.inflector' name='inflector' version='0.7.0' />
       <dependency group='org.apache.maven.wagon' name='wagon-webdav-jackrabbit' version='2.2' />
+      <dependency group='net.java.dev.inflector' name='inflector' version='0.7.0' />
     </build>
   </dependencies>
   <plugins />

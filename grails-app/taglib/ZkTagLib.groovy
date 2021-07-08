@@ -118,7 +118,8 @@ class ZkTagLib implements ApplicationContextAware {
         def dir  = attrs.remove('dir')
         def file = attrs.remove('file')
         def link = grailsLinkGenerator.resource([dir: dir, file: file])
-        out << link.replaceFirst(request.contextPath, "ext")
+        def result = link.replaceFirst(request.contextPath, "/ext")
+        out << result
 
         /*
         def r = applicationContext.getBean("org.grails.plugin.resource.ResourceTagLib")

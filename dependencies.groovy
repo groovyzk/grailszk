@@ -12,18 +12,11 @@ grails.project.dependency.resolution = {
     }
     log "warn" // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
     repositories {
-        grailsRepo "http://grails.org/plugins"
         grailsCentral()
         // uncomment the below to enable remote dependency resolution
         // from public Maven repositories
         mavenCentral()
         mavenLocal()
-        //mavenRepo "http://snapshots.repository.codehaus.org"
-        //mavenRepo "http://repository.codehaus.org"
-        //mavenRepo "http://download.java.net/maven/2/"
-        //mavenRepo "http://repository.jboss.com/maven2/"
-        mavenRepo "http://mavensync.zkoss.org/maven2/"
-        // mavenRepo "http://zkgrails.googlecode.com/svn/repo/"
     }
     dependencies {
         build ("net.java.dev.inflector:inflector:0.7.0")
@@ -33,7 +26,9 @@ grails.project.dependency.resolution = {
         build ("org.apache.maven.wagon:wagon-webdav-jackrabbit:2.2") {
             export = false
         }
-        test ("com.h2database:h2:1.3.168")
+        test ("com.h2database:h2:1.3.168") {
+            export = false
+        }
     }
 
     plugins {
