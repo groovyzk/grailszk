@@ -1,0 +1,83 @@
+<plugin name='zk' version='2.0.0' grailsVersion='2.0 &gt; *'>
+  <author>Chanwit Kaewkasi</author>
+  <authorEmail>chanwit@gmail.com</authorEmail>
+  <title>ZKGrails: ZK plugin for Grails</title>
+  <description>
+Originated from Flyisland's ZK Plugin,
+ZKGrails adds and enhances the ZK's RIA capabilities
+and seamlessly integrates them with Grails' infrastructures.
+</description>
+  <documentation>http://grails.org/plugin/zk</documentation>
+  <type>ZkGrailsPlugin</type>
+  <resources>
+    <resource>zk.Issue137Comet</resource>
+    <resource>zk.Issue139_1Comet</resource>
+    <resource>zk.Issue139_2Comet</resource>
+    <resource>zk.Issue139_3Comet</resource>
+    <resource>zk.Issue139_4Comet</resource>
+    <resource>zk.Issue139_5Comet</resource>
+    <resource>zk.Issue142Comet</resource>
+    <resource>zk.MyComet</resource>
+    <resource>NonPackageComposer</resource>
+    <resource>test.IndexComposer</resource>
+    <resource>test.MessageComposer</resource>
+    <resource>test.TestForwardComposer</resource>
+    <resource>zk.Issue137Composer</resource>
+    <resource>zk.Issue139Composer</resource>
+    <resource>zk.Issue142Composer</resource>
+    <resource>zk.Issue146_1Composer</resource>
+    <resource>zk.Issue146_2Composer</resource>
+    <resource>zk.Issue146_3Composer</resource>
+    <resource>zk.Issue146_4Composer</resource>
+    <resource>zk.Issue164Composer</resource>
+    <resource>zk.Issue47Composer</resource>
+    <resource>zk.Issue74Composer</resource>
+    <resource>zk.MyComposer</resource>
+    <resource>zk.UserComposer</resource>
+    <resource>zk.crud.IndexComposer</resource>
+    <resource>zk.hangman.HangmanComposer</resource>
+    <resource>zk.hello.HelloComposer</resource>
+    <resource>zk.select.JQueryComposer</resource>
+    <resource>zk.select.TestComposer</resource>
+    <resource>SeleniumConfig</resource>
+    <resource>TestUrlMappings</resource>
+    <resource>ZkUrlMappings</resource>
+    <resource>org.zkoss.zk.grails.dev.DevZulController</resource>
+    <resource>zk.Issue136Controller</resource>
+    <resource>zk.Issue96Controller</resource>
+    <resource>zk.TestController</resource>
+    <resource>zk.Comment</resource>
+    <resource>zk.Issue47</resource>
+    <resource>zk.User</resource>
+    <resource>zk.hangman.Hangman</resource>
+    <resource>zk.UserLiveModel</resource>
+    <resource>zk.TestService</resource>
+    <resource>MyTagLib</resource>
+    <resource>ZkTagLib</resource>
+    <resource>ZulWrapperTagLib</resource>
+    <resource>zk.UserViewModel</resource>
+    <resource>zk.hangman.HangmanViewModel</resource>
+    <resource>zk.hello.GridViewModel</resource>
+    <resource>zk.hello.HelloViewModel</resource>
+  </resources>
+  <repositories>
+    <repository name='http://grails.org/plugins' url='http://grails.org/plugins' />
+    <repository name='grailsCentral' url='http://grails.org/plugins' />
+    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
+    <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
+    <repository name='http://mavensync.zkoss.org/maven2/' url='http://mavensync.zkoss.org/maven2/' />
+  </repositories>
+  <dependencies>
+    <test>
+      <dependency group='com.h2database' name='h2' version='1.3.168' />
+    </test>
+    <build>
+      <dependency group='com.google.code.maven-svn-wagon' name='maven-svn-wagon' version='1.4' />
+      <dependency group='net.java.dev.inflector' name='inflector' version='0.7.0' />
+      <dependency group='org.apache.maven.wagon' name='wagon-webdav-jackrabbit' version='2.2' />
+    </build>
+  </dependencies>
+  <plugins />
+  <runtimePluginRequirements />
+  <behavior />
+</plugin>

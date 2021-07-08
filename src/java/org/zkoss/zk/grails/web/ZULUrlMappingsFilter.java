@@ -79,8 +79,9 @@ import org.zkoss.zk.grails.web.ZULUrlMappingsFilter;
  */
 public class ZULUrlMappingsFilter extends OncePerRequestFilter {
 
-    private UrlPathHelper urlHelper = new UrlPathHelper();
     private static final Log LOG = LogFactory.getLog(ZULUrlMappingsFilter.class);
+
+    private UrlPathHelper urlHelper = new UrlPathHelper();
     private static final String GSP_SUFFIX = ".gsp";
     private static final String JSP_SUFFIX = ".jsp";
     private static final String ZUL_SUFFIX = ".zul";
@@ -125,18 +126,24 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
 
         String uri = urlHelper.getPathWithinApplication(request);
 
-        if (uri.startsWith("/zkau") || uri.startsWith("/dbconsole")) {
+        if (uri.startsWith("/zkau")      ||
+            uri.startsWith("/dbconsole") ||
+            uri.startsWith("/ext")       ||
+            uri.startsWith("~.")) {
+            LOG.debug("Excluding: " + uri);
             processFilterChain(request, response, filterChain);
             return;
         }
 
         if (!"/".equals(uri) && noControllers() && noComposers() && noRegexMappings(holder)) {
             // not index request, no controllers, and no URL mappings for views, so it's not a Grails request
+            LOG.debug("not index request, no controllers, and no URL mappings for views, so it's not a Grails request");
             processFilterChain(request, response, filterChain);
             return;
         }
 
         if (isUriExcluded(holder, uri)) {
+            LOG.debug("Excluded by pattern: " + uri);
             processFilterChain(request, response, filterChain);
             return;
         }
@@ -224,7 +231,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
 
                     request = checkMultipart(request);
 
-                    if (viewName == null || viewName.endsWith(GSP_SUFFIX) || viewName.endsWith(JSP_SUFFIX)) {
+                    if (viewName == null || (viewName.endsWith(GSP_SUFFIX) || viewName.endsWith(JSP_SUFFIX))) {
                         if (info.isParsingRequest()) {
                             webRequest.informParameterCreationListeners();
                         }
@@ -232,11 +239,13 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Matched URI [" + uri + "] to URL mapping [" + info + "], forwarding to [" + forwardUrl + "] with response [" + response.getClass() + "]");
                         }
-                    } else if(viewName.endsWith(ZUL_SUFFIX)) {
+                    } else if(viewName != null && viewName.endsWith(ZUL_SUFFIX)) {
                         RequestDispatcher dispatcher = request.getRequestDispatcher(viewName);
                         dispatcher.forward(request, response);
                     } else {
-                        if (!renderViewForUrlMappingInfo(request, response, info, viewName)) {
+                        if(viewName == null) {
+                            dispatched = false;
+                        } else if (!renderViewForUrlMappingInfo(request, response, info, viewName)) {
                             dispatched = false;
                         }
                     }

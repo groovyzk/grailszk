@@ -25,6 +25,7 @@ class ZkTagLib implements ApplicationContextAware {
     GrailsApplication grailsApplication
     ApplicationContext applicationContext
     GrailsPluginManager pluginManager
+    def grailsLinkGenerator
 
     def wrapper = { attrs, b ->
         def url = attrs.remove('url')
@@ -66,7 +67,7 @@ class ZkTagLib implements ApplicationContextAware {
             throwTagError("Attribute [required] has to be a boolean value [true|false]")
         }
         if (args && !(args instanceof List)) {
-            throwTagError("Attribute [args] has to be a list")
+            throwTagError("Attribute [args] has to be a set")
         }
         if (defValue && !(defValue instanceof String)) {
             throwTagError("Attribute [default] has to be a String")
@@ -112,9 +113,18 @@ class ZkTagLib implements ApplicationContextAware {
     }
 
     def resource = { attrs ->
+        // Avoid using resources-managed directory.
+        // Use web-app/ext/ to hold external things
+        def dir  = attrs.remove('dir')
+        def file = attrs.remove('file')
+        def link = grailsLinkGenerator.resource([dir: dir, file: file])
+        out << link.replaceFirst(request.contextPath, "ext")
+
+        /*
         def r = applicationContext.getBean("org.grails.plugin.resource.ResourceTagLib")
         String result = r.resource(attrs).replaceFirst(request.contextPath, "")
         out << result
+        */
     }
 
     private cacheZul(url) {

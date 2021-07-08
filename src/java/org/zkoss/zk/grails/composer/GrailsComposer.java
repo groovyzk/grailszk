@@ -41,6 +41,7 @@ import org.zkoss.zk.grails.GrailsComet;
 import org.zkoss.zk.grails.MessageHolder;
 import org.zkoss.zk.grails.ZkBuilder;
 import org.zkoss.zk.grails.scaffolding.ScaffoldingTemplate;
+import org.zkoss.zk.grails.select.JQuery;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Desktop;
 import org.zkoss.zk.ui.Page;
@@ -50,7 +51,12 @@ import org.zkoss.zk.ui.event.ForwardEvent;
 import org.zkoss.zk.ui.select.Selectors;
 import org.zkoss.zk.ui.sys.ComponentsCtrl;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
+
+import org.zkoss.zk.ui.metainfo.ComponentInfo;
+
 import org.zkoss.zkplus.spring.SpringUtil;
+
+import org.zkoss.zk.ui.Executions;
 
 public class GrailsComposer extends GenericForwardComposer<Component> {
 
@@ -143,12 +149,12 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         comp.addEventListener("onBookmarkChange", new org.zkoss.zk.ui.event.EventListener<Event>() {
             public void onEvent(Event event) throws Exception {
                 BookmarkEvent be = (BookmarkEvent)event;
-                String hashtag = be.getBookmark();
-                if(hashtag.startsWith("!")) {
-                    hashtag = hashtag.substring(1);
+                String hashTag = be.getBookmark();
+                if(hashTag.startsWith("!")) {
+                    hashTag = hashTag.substring(1);
                 }
                 // TODO parse to be inputs
-                InvokerHelper.invokeMethod(GrailsComposer.this, hashtag, new Object[]{});
+                InvokerHelper.invokeMethod(GrailsComposer.this, hashTag, new Object[]{});
             }
         });
 
@@ -228,11 +234,27 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         }
     }
 
+    /*
+    private boolean handleBeforeComposeClosure(Page page, Component parent) {
+        try {
+            Object c = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "beforeCompose");
+            if (c instanceof Closure) {
+                Object b = ((Closure)c).call(page, parent);
+                if(b instanceof Boolean) {
+                    return (Boolean)b;
+                } else {
+                    return true;
+                }
+            }
+        } catch (BeansException e) { do nothing }
+        return true;
+    }*/
+
     private void handleAfterComposeClosure(Component comp) {
         try {
             Object c = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "afterCompose");
             if (c instanceof Closure) {
-                ((Closure<?>) c).call(comp);
+                ((Closure)c).call(comp);
             }
         } catch (BeansException e) { /* do nothing */ }
     }
@@ -241,8 +263,7 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         try {
             ApplicationContext ctx = SpringUtil.getApplicationContext();
 
-            Object scaffold =
-                    GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "scaffold");
+            Object scaffold = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "scaffold");
             if (scaffold != null) {
                 GrailsApplication app = ctx.getBean(
                         GrailsApplication.APPLICATION_ID,
@@ -253,7 +274,7 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
                         ScaffoldingTemplate.class);
 
                 if (scaffold instanceof Boolean) {
-                    if (((Boolean) scaffold) == true) {
+                    if (((Boolean) scaffold)) {
                         //
                         // Use this to find class name
                         // and cut "Composer" off.
@@ -271,16 +292,17 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
                     template.initComponents((Class<?>) scaffold, comp, app);
                 }
             }
-        } catch (BeansException e) { /* do nothing */}
+        } catch (BeansException e) {
+            System.out.println("Warning : " + e.getMessage());
+        }
     }
 
+    public JQuery $(String arg)    { return JQuery.select(root, new Object[]{arg}); }
+    public JQuery $(Object[] args) { return JQuery.select(root, args); }
 
-    public List<Component> select(String query) {
-        return Selectors.find(root, query);
-    }
-
-    public List<Component> select(String query, Page page) {
-        return Selectors.find(page, query);
+    public void redirect(Map map) {
+        String uri = map.get("uri").toString();
+        Executions.sendRedirect(uri);
     }
 
 }

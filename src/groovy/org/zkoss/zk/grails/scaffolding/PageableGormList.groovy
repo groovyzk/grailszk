@@ -8,7 +8,7 @@ class PageableGormList extends AbstractList {
     Integer page
 
     //
-    //    def list = scaffold.list(
+    //    def set = scaffold.set(
     //                    offset: page * scaffoldPaging.pageSize,
     //                    max:    scaffoldPaging.pageSize
     //    )

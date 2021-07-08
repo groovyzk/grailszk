@@ -34,6 +34,6 @@ public class Snippets {
         "import org.zkoss.zk.ui.event.*;\n" +
         "import org.zkoss.zkplus.databind.*;\n" +
         "import org.zkoss.zul.*\n" +
-        "import static org.zkoss.zkgrails.Helper.*\n" +
+        "import static org.zkoss.zk.grails.Helper.*\n" +
         "\n";
 }

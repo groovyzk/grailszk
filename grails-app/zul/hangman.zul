@@ -13,4 +13,5 @@
         <box height="20px"/>
         <label id="btnNewGame" value="New Game?" style="cursor: pointer; text-decoration: underline; color: maroon;"/>
     </vbox>
+
 </window>

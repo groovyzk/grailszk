@@ -15,10 +15,12 @@
  */
 package org.zkoss.zk.grails.web;
 
+import grails.util.Environment;
 import grails.util.GrailsWebUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.FilterChain;
@@ -30,11 +32,20 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.groovy.grails.commons.ApplicationAttributes;
 import org.codehaus.groovy.grails.commons.GrailsApplication;
 import org.codehaus.groovy.grails.support.NullPersistentContextInterceptor;
 import org.codehaus.groovy.grails.support.PersistenceContextInterceptor;
-import org.codehaus.groovy.grails.web.sitemesh.*;
+import org.codehaus.groovy.grails.web.mapping.LinkGenerator;
+import org.codehaus.groovy.grails.web.sitemesh.FactoryHolder;
+import org.codehaus.groovy.grails.web.sitemesh.GSPSitemeshPage;
+import org.codehaus.groovy.grails.web.sitemesh.Grails5535Factory;
+import org.codehaus.groovy.grails.web.sitemesh.GrailsContentBufferingResponse;
+import org.codehaus.groovy.grails.web.sitemesh.GrailsNoDecorator;
+import org.codehaus.groovy.grails.web.sitemesh.GrailsPageFilter;
+import org.codehaus.groovy.grails.web.util.StreamCharBuffer;
 import org.codehaus.groovy.grails.web.util.WebUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.ViewResolver;
@@ -60,6 +71,7 @@ import com.opensymphony.sitemesh.webapp.SiteMeshWebAppContext;
  * @author Graeme Rocher
  */
 public class ZKGrailsPageFilter extends SiteMeshFilter {
+
     public static final String ALREADY_APPLIED_KEY = "com.opensymphony.sitemesh.APPLIED_ONCE";
     public static final String FACTORY_SERVLET_CONTEXT_ATTRIBUTE = "sitemesh.factory";
     private static final String HTML_EXT = ".html";
@@ -83,7 +95,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         containerTweaks = new ContainerTweaks();
         Config config = new Config(fc);
 
-        Grails5535Factory defaultFactory = new Grails5535Factory(config);//TODO revert once Sitemesh bug is fixed
+        Grails5535Factory defaultFactory = new Grails5535Factory(config); // TODO revert once Sitemesh bug is fixed
         fc.getServletContext().setAttribute(FACTORY_SERVLET_CONTEXT_ATTRIBUTE, defaultFactory);
         defaultFactory.refresh();
         FactoryHolder.setFactory(defaultFactory);
@@ -119,6 +131,15 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         return (servletPath == null ? "" : servletPath)
                 + (pathInfo == null ? "" : pathInfo)
                 + (query == null ? "" : ("?" + query));
+    }
+
+    private boolean isZUL(HttpServletRequest request) {
+        String path = extractRequestPath(request);
+        ArrayList<String> arrExtensions = ZkConfigHelper.getSupportExtensions();
+        for(String sExt : arrExtensions) {
+            if(path.lastIndexOf("." + sExt) != -1) return true;
+        }
+        return false;
     }
 
     private boolean isZK(HttpServletRequest request) {
@@ -160,13 +181,26 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
 
         SiteMeshWebAppContext webAppContext = new SiteMeshWebAppContext(request, response, servletContext);
 
-        if(isZK(request)) {
+        if (filterAlreadyAppliedForRequest(request)) {
+            // Prior to Servlet 2.4 spec, it was unspecified whether the filter should be called again upon an include().
             chain.doFilter(request, response);
             return;
         }
 
-        if (filterAlreadyAppliedForRequest(request)) {
-            // Prior to Servlet 2.4 spec, it was unspecified whether the filter should be called again upon an include().
+        if(isZUL(request)) {
+            //
+            // TODO if disable live
+            //
+            Content content = obtainContent(contentProcessor, webAppContext, request, response, chain);
+            if (content == null || response.isCommitted()) {
+                return;
+            }
+            applyLive(request, content);
+            new GrailsNoDecorator().render(content, webAppContext);
+            return;
+        }
+
+        if(isZK(request)) {
             chain.doFilter(request, response);
             return;
         }
@@ -186,14 +220,14 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
 
         boolean dispatched = false;
         try {
+            persistenceInterceptor.init();
             Content content = obtainContent(contentProcessor, webAppContext, request, response, chain);
             if (content == null || response.isCommitted()) {
                 return;
             }
-
+            // applyLive(request, content);
             detectContentTypeFromPage(content, response);
             com.opensymphony.module.sitemesh.Decorator decorator = decoratorMapper.getDecorator(request, GSPSitemeshPage.content2htmlPage(content));
-            persistenceInterceptor.reconnect();
             if(decorator instanceof Decorator) {
                 ((Decorator)decorator).render(content, webAppContext);
             } else {
@@ -214,12 +248,55 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                 request.setAttribute(ALREADY_APPLIED_KEY, null);
             }
             if (persistenceInterceptor.isOpen()) {
+                persistenceInterceptor.flush();
                 persistenceInterceptor.destroy();
             }
         }
     }
 
-   /**
+    private void applyLive(HttpServletRequest request, Content content) throws IOException {
+        if(Environment.getCurrent() == Environment.DEVELOPMENT) {
+            // if ZK Grails in the Dev mode
+            // insert z-it-live.js
+            if(content instanceof GSPSitemeshPage) {
+                GSPSitemeshPage page = (GSPSitemeshPage)content;
+                String pageContent = page.getPage();
+                String contextPath = request.getContextPath();
+                //
+                // src="/zello/zkau/
+                if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
+                    StreamCharBuffer buffer = new StreamCharBuffer();
+                    LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
+                    String link = grailsLinkGenerator.resource(new HashMap(){{
+                        put("dir","ext/js");
+                        put("file","z-it-live.js");
+                        put("plugin", "zk");
+                    }});
+                    buffer.getWriter().write(
+                        pageContent.replace("</head>",
+                            "<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n</head>")
+                    );
+                    page.setPageBuffer(buffer);
+                }
+            }
+        }
+    }
+
+    private String detectZULFile(String pageContent, String contextPath) {
+        // detect uu:'/zello/zkau'
+        int i = pageContent.indexOf("uu:'"+ contextPath + "/zkau'");
+        if(i < 0)
+            return null;
+        i += 4;
+        int j = i;
+        while(pageContent.charAt(j) != '\'') {
+            j++;
+            if(j >= pageContent.length()) return null;
+        }
+        return pageContent.substring(i, j);
+    }
+
+    /**
      * Continue in filter-chain, writing all content to buffer and parsing
      * into returned {@link com.opensymphony.module.sitemesh.Page} object. If
      * {@link com.opensymphony.module.sitemesh.Page} is not parseable, null is returned.

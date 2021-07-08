@@ -1,21 +1,24 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
+import grails.util.Environment
 import grails.util.GrailsUtil
+import org.springframework.core.io.FileSystemResource
+import org.zkoss.zk.grails.ZkBuilder
+import org.zkoss.zk.grails.ZkConfigHelper
+import org.zkoss.zk.grails.composer.GrailsBindComposer
+import org.zkoss.zk.grails.composer.JQueryComposer
 import org.zkoss.zk.grails.livemodels.LiveModelBuilder
 import org.zkoss.zk.grails.livemodels.SortingPagingListModel
 import org.zkoss.zk.grails.web.ComposerMapping
 import org.zkoss.zk.ui.event.EventListener
-import org.zkoss.zk.grails.*
 import org.zkoss.zk.grails.artefacts.*
-import org.zkoss.zk.grails.composer.GrailsComposer
-import org.zkoss.zk.grails.composer.GrailsBindComposer
-import org.codehaus.groovy.runtime.InvokerHelper
+import org.zkoss.zk.grails.dev.DevHolder
 
 class ZkGrailsPlugin {
     // the plugin version
-    def version = "2.0.0.M2"
+    def version = "2.0.0"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "1.3 > *"
+    def grailsVersion = "2.0 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     def loadAfter = ['core', 'controllers']
@@ -37,7 +40,12 @@ class ZkGrailsPlugin {
                             "file:./grails-app/livemodels/**/*LiveModel.groovy",
                             "file:./plugins/*/grails-app/livemodels/**/*LiveModel.groovy",
                             "file:./grails-app/viewmodels/**/*ViewModel.groovy",
-                            "file:./plugins/*/grails-app/viewmodels/**/*ViewModel.groovy"
+                            "file:./plugins/*/grails-app/viewmodels/**/*ViewModel.groovy",
+
+                            //
+                            // support watching ZUL files
+                            //
+                            "file:./grails-app/zul/**/*.zul"
                             ]
 
     // resources that are excluded from plugin packaging
@@ -58,15 +66,14 @@ class ZkGrailsPlugin {
         "grails-app/i18n/*.properties",
         "web-app/css/**",
         "web-app/issue*",
-        "web-app/js/**",
         "web-app/META-INF/**",
         "web-app/test/**",
         "web-app/WEB-INF/**",
-        "web-app/images/skin/**",
-        "web-app/images/*.ico",
-        "web-app/images/grails_*",
-        "web-app/images/leftnav_*",
-        "web-app/images/sp*",
+        "web-app/ext/images/skin/**",
+        "web-app/ext/images/*.ico",
+        // "web-app/ext/images/grails_*",
+        "web-app/ext/images/leftnav_*",
+        "web-app/ext/images/sp*",
         "web-app/**/*.zul",
         "test/**",
         "src/docs/**",
@@ -87,6 +94,13 @@ and seamlessly integrates them with Grails\' infrastructures.
     def documentation = "http://grails.org/plugin/zk"
 
     def doWithSpring = {
+
+        if(Environment.current == Environment.DEVELOPMENT) {
+            devHolder(org.zkoss.zk.grails.dev.DevHolder) { bean ->
+                bean.scope = "singleton"
+            }
+        }
+
         //
         // Registering new scopes
         //
@@ -129,9 +143,18 @@ and seamlessly integrates them with Grails\' infrastructures.
             if(composerClass.packageName) {
                 composerBeanName = "${composerClass.packageName}.${composerBeanName}"
             }
-            "${composerBeanName}"(composerClass.clazz) { bean ->
-                bean.scope = "prototype"
-                bean.autowire = "byName"
+            Class clazz = composerClass.clazz
+            if(clazz.superclass == Script.class) {
+                "${composerBeanName}"(JQueryComposer.class) { bean ->
+                    bean.scope = "prototype"
+                    bean.autowire = "byName"
+                    innerComposer = clazz
+                }
+            } else {
+                "${composerBeanName}"(composerClass.clazz) { bean ->
+                    bean.scope = "prototype"
+                    bean.autowire = "byName"
+                }
             }
         }
 
@@ -190,6 +213,32 @@ and seamlessly integrates them with Grails\' infrastructures.
         // e.g. ["zul"]
         //
         def supportExts = ZkConfigHelper.supportExtensions
+
+        final String GOSIV_CLASS = "org.zkoss.zk.grails.web.ZKGrailsOpenSessionInViewFilter"
+
+        //
+        // e.g. ["*.zul", "/zkau/*"]
+        //
+        def filterUrls = supportExts.collect{ "*." + it } + ["/zkau/*"]
+
+        // adding GrailsOpenSessionInView
+        def filterElements = xml.'filter'[0]
+        filterElements + {
+            'filter' {
+                'filter-name' ("GOSIVFilter")
+                'filter-class' (GOSIV_CLASS)
+            }
+        }
+        // filter for each ZK urls
+        def filterMappingElements = xml.'filter-mapping'[0]
+        filterUrls.each {p ->
+            filterMappingElements + {
+                'filter-mapping' {
+                    'filter-name'("GOSIVFilter")
+                    'url-pattern'("${p}")
+                }
+            }
+        }
 
         //
         // e.g. ["*.zul", "*.dsp", "*.zhtml", "*.svg", "*.xml2html"]
@@ -266,18 +315,21 @@ and seamlessly integrates them with Grails\' infrastructures.
                 'url-pattern'("/zkau/*")
             }
         }
+
     }
 
     def doWithDynamicMethods = { ctx ->
 
-        GrailsComposer.metaClass.methodMissing = { String name, args ->
-            if(name=='$') {
-                if(args.size() == 1)
-                    return delegate.select(args[0])
-                else if(args.size() == 2)
-                    return delegate.select(args[0], args[1])
+        application.composerClasses.each { composerClass ->
+            Class clazz = composerClass.clazz
+            if(clazz.superclass == Script.class) {
+                clazz.metaClass.methodMissing = { String name, args ->
+                    if(name=='$') {
+                        return composer.select(args)
+                    }
+                    throw new MissingMethodException(name, delegate.class, args)
+                }
             }
-            throw new MissingMethodException(name, delegate.class, args)
         }
 
         // Simpler way to add and remove event
@@ -332,20 +384,6 @@ and seamlessly integrates them with Grails\' infrastructures.
             closure.call()
         }
 
-        org.zkoss.zul.Listbox.metaClass.clear = { ->
-            while (delegate.itemCount > 0) {
-                delegate.removeItemAt(0)
-            }
-        }
-
-        org.zkoss.zul.Listbox.metaClass.setModel = { list ->
-            ListboxModelDynamicMethods.setModel(delegate, list)
-        }
-
-        org.zkoss.zul.Listbox.metaClass.getModel = { ->
-            delegate.getModel()
-        }
-
         org.zkoss.zul.AbstractListModel.metaClass.getAt = { Integer i ->
             return delegate.getElementAt(i)
         }
@@ -376,71 +414,82 @@ and seamlessly integrates them with Grails\' infrastructures.
     }
 
     def onChange = { event ->
-        if (application.isArtefactOfType(ComposerArtefactHandler.TYPE, event.source)) {
-            def context = event.ctx
-            if (!context) {
-                if (log.isDebugEnabled())
-                    log.debug("Application context not found. Can't reload")
-                return
+
+        if(event.source instanceof FileSystemResource) {
+            DevHolder devHolder = event.ctx.getBean('devHolder')
+            synchronized(devHolder) {
+                def fsr = (event.source as FileSystemResource)
+                def basedir = System.properties["base.dir"].replace('\\','/') + '/grails-app'
+                def pathToKeep = (fsr.path - basedir)
+                if(fsr.path.endsWith('.zul')) {
+                    devHolder.add(pathToKeep, fsr.file)
+                }
             }
+        }
+
+        if(event.source instanceof Class == false) return
+
+        def context = event.ctx
+        if (!context) {
+            if (log.isDebugEnabled())
+                log.debug("Application context not found. Can't reload")
+            return
+        }
+
+        if (application.isArtefactOfType(ComposerArtefactHandler.TYPE, event.source)) {
             def composerClass = application.addArtefact(ComposerArtefactHandler.TYPE, event.source)
             def composerBeanName = composerClass.propertyName
             if(composerClass.packageName) {
                 composerBeanName = "${composerClass.packageName}.${composerBeanName}"
             }
-            // composerBeanName = composerBeanName.replace('.', '_')
             def beanDefinitions = beans {
-                "${composerBeanName}"(composerClass.clazz) { bean ->
-                    bean.scope = "prototype"
-                    bean.autowire = "byName"
+                Class clazz = composerClass.clazz
+                if(clazz.superclass == Script.class) {
+                    "${composerBeanName}"(JQueryComposer.class) { bean ->
+                        bean.scope = 'prototype'
+                        bean.autowire = 'byName'
+                        innerComposer = clazz
+                    }
+                } else {
+                    "${composerBeanName}"(composerClass.clazz) { bean ->
+                        bean.scope = 'prototype'
+                        bean.autowire = 'byName'
+                    }
                 }
             }
+            beanDefinitions.registerBeans(context)
 
-            //
-            // now that we have a BeanBuilder calling registerBeans and passing the app ctx will
-            // register the necessary beans with the given app ctx
-            beanDefinitions.registerBeans(event.ctx)
-
-            // Add the dynamic methods back to the class (since it's
-            // effectively a completely new class).
-            // event.manager?.getGrailsPlugin("zk")?.doWithDynamicMethods(event.ctx)
-        } else if (application.isArtefactOfType(FacadeArtefactHandler.TYPE, event.source)) {
-            def context = event.ctx
-            if (!context) {
-                if (log.isDebugEnabled())
-                    log.debug("Application context not found. Can't reload")
-                return
+        } else if(application.isArtefactOfType(ViewModelArtefactHandler.TYPE, event.source)) {
+            def viewModelClass = application.addArtefact(ViewModelArtefactHandler.TYPE, event.source)
+            def beanDefinitions = beans {
+                "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
+                    bean.scope = 'page'
+                    bean.autowire = 'byName'
+                }
             }
+            beanDefinitions.registerBeans(context)
+
+        } else if (application.isArtefactOfType(FacadeArtefactHandler.TYPE, event.source)) {
             def facadeClass = application.addArtefact(FacadeArtefactHandler.TYPE, event.source)
             def beanDefinitions = beans {
                 "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
-                    bean.scope = "session"
-                    bean.autowire = "byName"
+                    bean.scope = 'session'
+                    bean.autowire = 'byName'
                 }
             }
-            beanDefinitions.registerBeans(event.ctx)
+            beanDefinitions.registerBeans(context)
+
         } else if (application.isArtefactOfType(CometArtefactHandler.TYPE, event.source)) {
-            def context = event.ctx
-            if (!context) {
-                if (log.isDebugEnabled())
-                    log.debug("Application context not found. Can't reload")
-                return
-            }
             def cometClass = application.addArtefact(CometArtefactHandler.TYPE, event.source)
             def beanDefinitions = beans {
                 "${cometClass.propertyName}"(cometClass.clazz) { bean ->
-                    bean.scope = "prototype"
-                    bean.autowire = "byName"
+                    bean.scope = 'prototype'
+                    bean.autowire = 'byName'
                 }
             }
-            beanDefinitions.registerBeans(event.ctx)
+            beanDefinitions.registerBeans(context)
+
         } else if (application.isArtefactOfType(LiveModelArtefactHandler.TYPE, event.source)) {
-            def context = event.ctx
-            if (!context) {
-                if (log.isDebugEnabled())
-                    log.debug("Application context not found. Can't reload")
-                return
-            }
             def modelClass = application.addArtefact(LiveModelArtefactHandler.TYPE, event.source)
             def cfg = GCU.getStaticPropertyValue(modelClass.clazz, "config")
             if(cfg) {
@@ -451,19 +500,20 @@ and seamlessly integrates them with Grails\' infrastructures.
                 if (lmb.map['model'] == 'page') {
                     def beanDefinitions = beans {
                         "${modelClass.propertyName}"(SortingPagingListModel.class) { bean ->
-                            bean.scope = "prototype"
-                            bean.autowire = "byName"
-                            bean.initMethod = "init"
+                            bean.scope = 'prototype'
+                            bean.autowire = 'byName'
+                            bean.initMethod = 'init'
                             map = lmb.map.clone()
                         }
                     }
-                    beanDefinitions.registerBeans(event.ctx)
+                    beanDefinitions.registerBeans(context)
                 }
             }
         }
-        // TODO else reload ViewModel
     }
 
     def onConfigChange = { event ->
     }
+
 }
+

@@ -30,14 +30,14 @@ import org.zkoss.zk.ui.sys.ComponentCtrl;
 import org.zkoss.zk.ui.util.Composer;
 import org.zkoss.zk.ui.util.ComposerExt;
 
-public class GrailsBindComposer<T extends Component, V> implements Composer<T>, ComposerExt<T>, Serializable, ApplicationContextAware {
+public class GrailsBindComposer<T extends Component> implements Composer<T>, ComposerExt<T>, Serializable, ApplicationContextAware {
 
     private static final long serialVersionUID = 5858943172681780132L;
 
     private static final String VM_ID = "$VM_ID$";
     private static final String BINDER_ID = "$BINDER_ID$";
 
-    private V _viewModel;
+    private Object _viewModel;
     private Binder _binder;
     private final Map<String, Converter> _converters;
     private final Map<String, Validator> _validators;
@@ -54,9 +54,8 @@ public class GrailsBindComposer<T extends Component, V> implements Composer<T>, 
 
 
 
-    @SuppressWarnings("unchecked")
     public GrailsBindComposer() {
-        setViewModel((V)this);
+        setViewModel(this);
         _converters = new HashMap<String, Converter>(8);
         _validators = new HashMap<String, Validator>(8);
     }
@@ -66,14 +65,14 @@ public class GrailsBindComposer<T extends Component, V> implements Composer<T>, 
     }
 
     //can assign a separate view model, default to this
-    public void setViewModel(V viewModel) {
+    public void setViewModel(Object viewModel) {
         _viewModel = viewModel;
         if (this._binder != null) {
             this._binder.setViewModel(_viewModel);
         }
     }
 
-    public V getViewModel() {
+    public Object getViewModel() {
         return _viewModel;
     }
 
@@ -105,7 +104,7 @@ public class GrailsBindComposer<T extends Component, V> implements Composer<T>, 
         comp.setAttribute(cname != null ? cname : comp.getId()+"$composer", this);
 
         //init viewmodel first
-        _viewModel = (V)initViewModel(evalx, comp);
+        _viewModel = initViewModel(evalx, comp);
         _binder = initBinder(evalx, comp);
         if(_viewModel instanceof BinderAware) {
             ((BinderAware)_viewModel).setBinder(_binder);
@@ -151,7 +150,7 @@ public class GrailsBindComposer<T extends Component, V> implements Composer<T>, 
             if(vm instanceof String){
                 String beanOrClassName = (String)vm;
                 if(applicationContext.containsBean(beanOrClassName)) {
-                    vm = (V)applicationContext.getBean(beanOrClassName);
+                    vm = applicationContext.getBean(beanOrClassName);
                 } else {
                     Class<?> vmClass = comp.getPage().resolveClass(beanOrClassName);
                     try {
