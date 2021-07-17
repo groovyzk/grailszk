@@ -1,0 +1,17 @@
+<zk xmlns:ca="http://www.zkoss.org/2005/zk/client/attribute">
+    <window apply="jquery.BindEventComposer">
+        <vlayout>
+            <button id="button" ca:data-id="button">Click me</button>
+            <label id="result1" ca:data-id="result1"/>
+
+            <textbox id="text" ca:data-id="text" value="Data" ctrlKeys="^#f3"/>
+            <label id="result2" ca:data-id="result2" />
+
+            <combobox id="combo" ca:data-id="combo" value="Empty">
+                <comboitem label="1"/>
+                <comboitem label="2"/>
+            </combobox>
+            <label id="result3" ca:data-id="result3" />
+        </vlayout>
+    </window>
+</zk>

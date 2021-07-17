@@ -37,7 +37,7 @@
                     <vlayout>
                         <label value="App version: ${g.meta(name:'app.version')}"/>
                         <label value="Grails version: ${g.meta(name:'app.grails.version')}"/>
-                        <label value="Groovy version: ${org.codehaus.groovy.runtime.InvokerHelper.getVersion()}"/>
+                        <label value="Groovy version: ${GroovySystem.getVersion()}"/>
                         <label value="JVM version: ${System.getProperty('java.version')}"/>
                         <label value="Reloading active: ${grails.util.Environment.reloadingAgentEnabled}"/>
                         <label value="Controllers: ${grailsApplication.controllerClasses.size()}"/>

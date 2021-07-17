@@ -206,7 +206,11 @@ class ZkBuilder {
         addAttributeEvents(zkObject, args)
 
         args.each {key, value ->
-            zkObject[key] = value
+            if(value instanceof JQuery) {
+                zkObject[key] = value[0]
+            } else {
+                zkObject[key] = value
+            }
         }
         if (parent) {
             zkObject.parent = parent

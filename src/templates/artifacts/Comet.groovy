@@ -1,6 +1,5 @@
-@artifact.package@import org.zkoss.zk.grails.*
-
-class @artifact.name@ extends GrailsComet {
+@artifact.package@
+class @artifact.name@ extends zk.grails.Comet {
 
     static trigger = [startDelay: 0L, every: 1000L]
 

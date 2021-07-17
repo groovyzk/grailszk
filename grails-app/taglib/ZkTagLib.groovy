@@ -48,6 +48,33 @@ class ZkTagLib implements ApplicationContextAware {
         out << "</html>"
     }
 
+    def head = { attrs, b ->
+        out << '''<head>
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="-1" />
+'''
+        out << JspFns.outZkHtmlTags(servletContext, request, response, null)
+        out << "\n"
+        if(b) {
+            out << b()
+        }
+        out << "</head>\n"
+    }
+
+    def body = { attrs, b ->
+        def url = attrs.remove('url')
+        if (url == null) {
+            url = "/${controllerName}/${actionName}.zul"
+        }
+        out << "<body>\n"
+        def zres = new ZulResponse(url, request, response, servletContext)
+        out << zres.model['source']
+        if(b) {
+            out << b()
+        }
+        out << "</body>\n"
+    }
+
     def div = { attrs, b ->
         cacheZul(attrs['zul'])
         out << pageScope.model[attrs['part']]
@@ -117,15 +144,15 @@ class ZkTagLib implements ApplicationContextAware {
         // Use web-app/ext/ to hold external things
         def dir  = attrs.remove('dir')
         def file = attrs.remove('file')
-        def link = grailsLinkGenerator.resource([dir: dir, file: file])
-        def result = link.replaceFirst(request.contextPath, "/ext")
-        out << result
+        def absolute = attrs.remove('absolute')
+        if(!absolute) {
+            def link = grailsLinkGenerator.resource([dir: dir, file: file])
+            def result = link.replaceFirst(request.contextPath, "/ext")
+            out << result
+        } else {
+            out << grailsLinkGenerator.resource([dir: "ext/${dir}", file: file, absolute: true])
+        }
 
-        /*
-        def r = applicationContext.getBean("org.grails.plugin.resource.ResourceTagLib")
-        String result = r.resource(attrs).replaceFirst(request.contextPath, "")
-        out << result
-        */
     }
 
     private cacheZul(url) {

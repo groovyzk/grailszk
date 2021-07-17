@@ -1,7 +1,7 @@
-<plugin name='zk' version='2.0.2' grailsVersion='2.0 &gt; *'>
+<plugin name='zk' version='2.2.0' grailsVersion='2.2 &gt; 2.2.1'>
   <author>Chanwit Kaewkasi</author>
   <authorEmail>chanwit@gmail.com</authorEmail>
-  <title>ZKGrails: ZK plugin for Grails</title>
+  <title>ZK plugin for Grails</title>
   <description>
 Originated from Flyisland's ZK Plugin,
 ZKGrails adds and enhances the ZK's RIA capabilities
@@ -17,10 +17,19 @@ and seamlessly integrates them with Grails' infrastructures.
     <resource>zk.Issue139_4Comet</resource>
     <resource>zk.Issue139_5Comet</resource>
     <resource>zk.Issue142Comet</resource>
+    <resource>zk.Issue318Comet</resource>
     <resource>zk.MyComet</resource>
     <resource>NonPackageComposer</resource>
+    <resource>jquery.BindEventComposer</resource>
+    <resource>jquery.Form001Composer</resource>
+    <resource>jquery.PrototypeComposer</resource>
+    <resource>jquery.TestAfterComposer</resource>
+    <resource>jquery.TestBeforeNotProceedComposer</resource>
+    <resource>jquery.TextComposer</resource>
     <resource>test.IndexComposer</resource>
+    <resource>test.Issue317Composer</resource>
     <resource>test.MessageComposer</resource>
+    <resource>test.NoGrailsExtendComposer</resource>
     <resource>test.TestForwardComposer</resource>
     <resource>zk.Issue137Composer</resource>
     <resource>zk.Issue139Composer</resource>
@@ -30,6 +39,8 @@ and seamlessly integrates them with Grails' infrastructures.
     <resource>zk.Issue146_3Composer</resource>
     <resource>zk.Issue146_4Composer</resource>
     <resource>zk.Issue164Composer</resource>
+    <resource>zk.Issue287Composer</resource>
+    <resource>zk.Issue318Composer</resource>
     <resource>zk.Issue47Composer</resource>
     <resource>zk.Issue74Composer</resource>
     <resource>zk.MyComposer</resource>
@@ -39,7 +50,6 @@ and seamlessly integrates them with Grails' infrastructures.
     <resource>zk.hello.HelloComposer</resource>
     <resource>zk.select.JQueryComposer</resource>
     <resource>zk.select.TestComposer</resource>
-    <resource>SeleniumConfig</resource>
     <resource>TestUrlMappings</resource>
     <resource>ZkUrlMappings</resource>
     <resource>org.zkoss.zk.grails.dev.DevZulController</resource>
@@ -62,12 +72,15 @@ and seamlessly integrates them with Grails' infrastructures.
   </resources>
   <repositories>
     <repository name='grailsCentral' url='http://grails.org/plugins' />
-    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
     <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
+    <repository name='http://repo1.maven.org/maven2' url='http://repo1.maven.org/maven2/' />
   </repositories>
   <dependencies>
     <test>
+      <dependency group='org.gebish' name='geb-junit4' version='0.9.0' />
       <dependency group='com.h2database' name='h2' version='1.3.168' />
+      <dependency group='org.seleniumhq.selenium' name='selenium-firefox-driver' version='2.32.0' />
+      <dependency group='org.seleniumhq.selenium' name='selenium-support' version='2.32.0' />
     </test>
     <build>
       <dependency group='com.google.code.maven-svn-wagon' name='maven-svn-wagon' version='1.4' />

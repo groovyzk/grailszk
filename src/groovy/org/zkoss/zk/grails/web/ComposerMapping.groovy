@@ -1,24 +1,16 @@
 package org.zkoss.zk.grails.web
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import grails.util.GrailsNameUtils
-import groovy.util.XmlSlurper
-import groovy.util.slurpersupport.GPathResult
 import grails.util.Environment
-import javax.servlet.ServletContext
-
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-
 import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.commons.GrailsClassUtils
-import org.springframework.beans.BeansException
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.io.Resource
+
+import javax.servlet.ServletContext
+import java.util.concurrent.ConcurrentHashMap
 
 class ComposerMapping implements ApplicationContextAware, InitializingBean {
 
@@ -88,7 +80,6 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
     /**
      * After the bean is instantiated, the method {@link #refresh()} will be called.
      **/
-    @Override
     public void afterPropertiesSet() throws Exception {
         refresh()
     }

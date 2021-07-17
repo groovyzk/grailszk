@@ -33,7 +33,24 @@ target ('default': "Creates a new zul page") {
 
     def type = "ZUL"
     promptForName(type: type)
+
     def name = argsMap["params"][0]
+
+    //
+    // always strip out .zul suffix
+    //
+    if(name.endsWith('.zul')) {
+        name = (name-'.zul')
+    }
+
+    //
+    // prevent a single-character composer name
+    //
+    if(name.size() == 1) {
+        // TODO emit as error message
+        println "Name is too short"
+        return
+    }
 
     //
     // #75 - Replaces "/" and "\" with "."
@@ -44,7 +61,7 @@ target ('default': "Creates a new zul page") {
     // #110 - Removes the last Composer if user accidentally inputted
     //
     if(name.endsWith("Composer"))
-        name = name.substring(0, name.indexOf("Composer"))
+        name = (name - 'Composer')
 
     def suffix = "Composer"
     def artifactPath = "grails-app/composers"
@@ -74,6 +91,15 @@ target ('default': "Creates a new zul page") {
     else {
         pkgPath = config.grails.project.groupId ? config.grails.project.groupId: grailsAppName
         pkgPath = pkgPath.replace('-' as char,'/' as char).replace('.' as char,'/' as char).toLowerCase() + "/"
+    }
+
+    //
+    // prevent a single-character composer name
+    //
+    if(name.size() == 1) {
+        // TODO emit as error message
+        println "Name is too short"
+        return
     }
 
     def propName  = GrailsNameUtils.getPropertyNameRepresentation(name)

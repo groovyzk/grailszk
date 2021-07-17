@@ -43,6 +43,25 @@ eventSetClasspath = { classLoader ->
 
 eventCreateWarStart = { warLocation, stagingDir ->
 
+    //
+    // Copy ZULs from plugins first
+    //
+    def pluginDirs = delegate.variables.collect { k, v ->
+        if(k.endsWith("PluginDir") && k != "zkPluginDir") {
+            return v
+        }
+    }
+    pluginDirs.each { dir ->
+        if(new File("${dir}/grails-app/zul").exists()) {
+            ant.copy(todir:"$stagingDir/WEB-INF/grails-app/zul/") {
+                fileset(dir:"${dir}/grails-app/zul")
+            }
+        }
+    }
+
+    //
+    // Then from the main app, so the main app takes the higher precedence
+    //
     ant.copy(todir:"$stagingDir/WEB-INF/grails-app/zul/") {
         fileset(dir:"$basedir/grails-app/zul")
     }
