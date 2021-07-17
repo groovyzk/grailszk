@@ -22,17 +22,19 @@ public class JQueryEventListener implements EventListener<Event> {
 
     public void onEvent(Event e) throws Exception {
         Component target = e.getTarget();
-        List<Closure> beforeList = (List<Closure>)target.getAttribute("$JQ_BEFORE$", Component.COMPONENT_SCOPE);
         boolean proceedTheEvent = true;
-        if(beforeList != null) {
-            for(Closure before : beforeList) {
-                try {
-                    Object result = InvokerHelper.invokeClosure(before, new Object[]{e});
-                    if(result instanceof Boolean) {
-                        proceedTheEvent = proceedTheEvent && (Boolean)result;
+        if(target != null) {
+            List<Closure> beforeList = (List<Closure>)target.getAttribute("$JQ_BEFORE$", Component.COMPONENT_SCOPE);
+            if(beforeList != null) {
+                for(Closure before : beforeList) {
+                    try {
+                        Object result = InvokerHelper.invokeClosure(before, new Object[]{e});
+                        if(result instanceof Boolean) {
+                            proceedTheEvent = proceedTheEvent && (Boolean)result;
+                        }
+                    } catch (Exception ex) {
+                        throw ex;
                     }
-                } catch (Exception ex) {
-                    throw ex;
                 }
             }
         }
@@ -49,13 +51,15 @@ public class JQueryEventListener implements EventListener<Event> {
             throw ex;
         }
 
-        List<Closure> afterList = (List<Closure>)target.getAttribute("$JQ_AFTER$", Component.COMPONENT_SCOPE);
-        if(afterList != null) {
-            for(Closure after: afterList) {
-                try {
-                    InvokerHelper.invokeClosure(after, new Object[]{e});
-                } catch (Exception ex) {
-                    throw ex;
+        if(target != null) {
+            List<Closure> afterList = (List<Closure>)target.getAttribute("$JQ_AFTER$", Component.COMPONENT_SCOPE);
+            if(afterList != null) {
+                for(Closure after: afterList) {
+                    try {
+                        InvokerHelper.invokeClosure(after, new Object[]{e});
+                    } catch (Exception ex) {
+                        throw ex;
+                    }
                 }
             }
         }

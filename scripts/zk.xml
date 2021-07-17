@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zk>
     <system-config>
-        <ui-factory-class>org.zkoss.zk.grails.ui.GrailsComposerFactory</ui-factory-class>
+        <web-app-factory-class>org.zkoss.zk.grails.sys.GrailsWebAppFactory</web-app-factory-class>
     </system-config>
-    <listener>
-        <description>ThreadLocal Synchronization Listener</description>
-        <listener-class>org.zkoss.zkplus.util.ThreadLocalListener</listener-class>
-    </listener>
     <zscript-config>
         <language-name>GroovyGrails</language-name>
         <interpreter-class>
@@ -22,8 +18,4 @@
                 org.springframework.web.context.request.RequestContextHolder=requestAttributesHolder,inheritableRequestAttributesHolder;
             </value>
     </preference>
-    <library-property>
-        <name>org.zkoss.zk.ui.metainfo.page.Loader.class</name>
-        <value>org.zkoss.web.util.resource.GrailsContentLoader</value>
-    </library-property>
 </zk>

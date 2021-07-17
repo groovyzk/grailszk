@@ -184,7 +184,12 @@ class ZkBuilder {
         parent."$name" = arg
     }
 
+    Binding bind = null
+
     def propertyMissing(String name) {
+        if(bind) {
+            return bind.getVariable(name)
+        }
         return parent."$name"
     }
 

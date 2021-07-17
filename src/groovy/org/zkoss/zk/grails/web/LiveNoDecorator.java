@@ -42,6 +42,7 @@ public class LiveNoDecorator extends BaseWebAppDecorator implements Decorator {
                 put("file","z-it-live.js");
                 put("plugin", "zk");
             }});
+            link = link.replaceAll("/plugins", "/static/plugins");
             original = original.replace("</head>", "\n<script type=\"text/javascript\" src=\"" + link + "\" charset=\"UTF-8\"></script>\n</head>");
         }
 

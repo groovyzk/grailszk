@@ -147,10 +147,10 @@ class ZkTagLib implements ApplicationContextAware {
         def absolute = attrs.remove('absolute')
         if(!absolute) {
             def link = grailsLinkGenerator.resource([dir: dir, file: file])
-            def result = link.replaceFirst(request.contextPath, "/ext")
+            def result = link.replaceFirst(request.contextPath, "/static/ext")
             out << result
         } else {
-            out << grailsLinkGenerator.resource([dir: "ext/${dir}", file: file, absolute: true])
+            out << grailsLinkGenerator.resource([dir: "static/ext/${dir}", file: file, absolute: true])
         }
 
     }

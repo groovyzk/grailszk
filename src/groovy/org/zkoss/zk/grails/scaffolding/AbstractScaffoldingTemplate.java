@@ -5,7 +5,6 @@ import grails.persistence.Event;
 import org.apache.commons.lang.StringUtils;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication;
-import org.codehaus.groovy.grails.scaffolding.*;
 
 import org.zkoss.zk.grails.*;
 import org.zkoss.zk.ui.Component;

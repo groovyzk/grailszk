@@ -8,6 +8,11 @@ class DevZulController {
     // index?r=/index.zul
     //
     def index() {
+        if(devHolder == null) {
+            response.sendError(200)
+            return
+        }
+
         synchronized (devHolder) {
             def f = devHolder.check('/zul' + params['r'])
             if(f) {

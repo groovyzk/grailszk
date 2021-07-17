@@ -15,10 +15,14 @@
  */
 package org.zkoss.zk.grails.web;
 
+import com.opensymphony.module.sitemesh.html.util.CharArray;
+import com.opensymphony.module.sitemesh.parser.TokenizedHTMLPage;
+import com.opensymphony.sitemesh.compatability.HTMLPage2Content;
 import grails.util.Environment;
 import grails.util.GrailsWebUtil;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,12 +41,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication;
 import org.codehaus.groovy.grails.support.NullPersistentContextInterceptor;
 import org.codehaus.groovy.grails.support.PersistenceContextInterceptor;
 import org.codehaus.groovy.grails.web.mapping.LinkGenerator;
-import org.codehaus.groovy.grails.web.sitemesh.FactoryHolder;
-import org.codehaus.groovy.grails.web.sitemesh.GSPSitemeshPage;
-import org.codehaus.groovy.grails.web.sitemesh.Grails5535Factory;
-import org.codehaus.groovy.grails.web.sitemesh.GrailsContentBufferingResponse;
-import org.codehaus.groovy.grails.web.sitemesh.GrailsNoDecorator;
-import org.codehaus.groovy.grails.web.sitemesh.GrailsPageFilter;
+import org.codehaus.groovy.grails.web.sitemesh.*;
 import org.codehaus.groovy.grails.web.util.StreamCharBuffer;
 import org.codehaus.groovy.grails.web.util.WebUtils;
 import org.springframework.context.ApplicationContext;
@@ -135,6 +134,11 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
 
     private boolean isZUL(HttpServletRequest request) {
         String path = extractRequestPath(request);
+        if(path.indexOf("?")!=-1) {
+            path = path.split("\\?")[0];
+        } else if (path.indexOf("#")!=-1){
+            path = path.split("#")[0];
+        }
         ArrayList<String> arrExtensions = ZkConfigHelper.getSupportExtensions();
         for(String sExt : arrExtensions) {
             if(path.lastIndexOf("." + sExt) != -1) return true;
@@ -196,8 +200,8 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             if (content == null || response.isCommitted()) {
                 return;
             }
-            applyLive(request, content);
-            new GrailsNoDecorator().render(content, webAppContext);
+            Content content2 = applyLive(request, content);
+            new GrailsNoDecorator().render(content2, webAppContext);
             return;
         }
 
@@ -255,7 +259,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         }
     }
 
-    private void applyLive(HttpServletRequest request, Content content) throws IOException {
+    private Content applyLive(HttpServletRequest request, Content content) throws IOException {
         if(Environment.getCurrent() == Environment.DEVELOPMENT) {
             // if ZK Grails in the Dev mode
             // insert z-it-live.js
@@ -263,7 +267,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                 GSPSitemeshPage page = (GSPSitemeshPage)content;
                 String pageContent = page.getPage();
                 if(pageContent == null) {
-                    return;
+                    return content;
                 }
                 String contextPath = request.getContextPath();
                 //
@@ -276,14 +280,52 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                         put("file","z-it-live.js");
                         put("plugin", "zk");
                     }});
+                    link = link.replaceAll("/plugins", "/static/plugins");
                     buffer.getWriter().write(
                         pageContent.replace("</head>",
                             "<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n</head>")
                     );
                     page.setPageBuffer(buffer);
                 }
+                return content;
+            } else if(content instanceof HTMLPage2Content) {
+                HTMLPage2Content page2Content = (HTMLPage2Content)content;
+                try {
+                    Field fPage = HTMLPage2Content.class.getDeclaredField("page");
+                    fPage.setAccessible(true);
+                    GrailsTokenizedHTMLPage htmlPage = (GrailsTokenizedHTMLPage)fPage.get(page2Content);
+                    String pageContent = htmlPage.getPage();
+                    String head = htmlPage.getHead();
+                    String body = htmlPage.getBody();
+
+                    String contextPath = request.getContextPath();
+                    //
+                    // src="/zello/zkau/
+                    if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
+                        LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
+                        String link = grailsLinkGenerator.resource(new HashMap(){{
+                            put("dir","ext/js");
+                            put("file","z-it-live.js");
+                            put("plugin", "zk");
+                        }});
+                        link = link.replaceAll("/plugins", "/static/plugins");
+                        pageContent = pageContent.replace("</head>", "<script type=\"text/javascript\" src=\"" + link + "\" charset=\"UTF-8\"></script>\n</head>");
+                        head = head + "\n<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n";
+                        CharArray newBody = new CharArray(body.length());
+                        newBody.append(body);
+                        CharArray newHead = new CharArray(head.length());
+                        newHead.append(head);
+                        GrailsTokenizedHTMLPage newHtmlPage = new GrailsTokenizedHTMLPage(pageContent.toCharArray(), newBody, newHead);
+                        return new HTMLPage2Content(newHtmlPage);
+                    }
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
             }
         }
+        return content;
     }
 
     private String detectZULFile(String pageContent, String contextPath) {

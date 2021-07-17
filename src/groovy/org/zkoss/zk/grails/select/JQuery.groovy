@@ -8,6 +8,7 @@ import org.zkoss.zk.ui.Page
 import org.zkoss.zk.ui.event.Event
 import org.zkoss.zk.ui.select.Selectors
 import org.zkoss.zkplus.databind.DataBinder
+import org.zkoss.zk.ui.Executions
 
 /**
  * This class contains a set of jQuery-like methods for UI selection, manipulation amd data-binding.
@@ -385,6 +386,20 @@ class JQuery extends AbstractList<Component> {
     }
 
     /**
+     * Accept [k: v] then loop over v with binding k to the closure.
+     *
+     * @param {@code map} a Map whose first element will be binding to each components.
+     *
+     * @return {@code this} for chaining the calls.
+     */
+    def each(Map map) {
+        components?.each { comp ->
+            comp.setAttribute('$JQ_BIND_EACH$', map, Component.COMPONENT_SCOPE)
+        }
+        return this
+    }
+
+    /**
      * Append the builder closure to the first selected compoment.
      *
      * @param c the builder closure.
@@ -395,7 +410,21 @@ class JQuery extends AbstractList<Component> {
     def append(Closure c) {
         def comp = components?.get(0)
         if(comp) {
-            return comp.append(c)
+            def map = comp.removeAttribute('$JQ_BIND_EACH$', Component.COMPONENT_SCOPE)
+            if(map) {
+                def e = map.entrySet()[0]
+                def k = e.key
+                for(v in e.value) {
+                    def cc = c.clone()
+                    def bind = new Binding()
+                    bind.setVariable(k, v)
+                    cc.delegate = bind
+                    comp.append(cc)
+                }
+                return null
+            } else {
+                return comp.append(c)
+            }
         }
         return null
     }
@@ -516,7 +545,7 @@ class JQuery extends AbstractList<Component> {
                 comp.setAttribute('$JQ_BINDER$', binder, Component.COMPONENT_SCOPE)
             }
             comp.setAttribute('$JQ_BINDING_OBJ$', obj, Component.COMPONENT_SCOPE)
-            comp.setAttribute('$JQ_BINDING_MAP$', map, Component.COMPONENT_SCOPE)
+            comp.setAttribute('$JQ_FILL_MAP$', map, Component.COMPONENT_SCOPE)
 
             LOG.debug "Set $comp attributes"
 
@@ -535,8 +564,8 @@ class JQuery extends AbstractList<Component> {
                 }
 
                 def selectedComponents = null
-                if(selector instanceof String) {
-                    selectedComponents = Selectors.find(comp, preprocess(selector))
+                if(selector instanceof String || selector instanceof GString) {
+                    selectedComponents = Selectors.find(comp, preprocess(selector.toString()))
                 } else if(selector instanceof Component) {
                     selectedComponents = [cid]
                 }
@@ -595,7 +624,7 @@ class JQuery extends AbstractList<Component> {
         if (comp) {
             def binder = comp.getAttribute('$JQ_BINDER$', Component.COMPONENT_SCOPE)
             def obj    = comp.removeAttribute('$JQ_BINDING_OBJ$', Component.COMPONENT_SCOPE)
-            def map    = comp.removeAttribute('$JQ_BINDING_MAP$', Component.COMPONENT_SCOPE)
+            def map    = comp.removeAttribute('$JQ_FILL_MAP$', Component.COMPONENT_SCOPE)
             map?.each { expr, cid ->
                 if(cid instanceof Map) {
                     cid = cid['selector']
@@ -757,28 +786,50 @@ class JQuery extends AbstractList<Component> {
         return comp?.getAttribute('$JQ_BINDER$', Component.COMPONENT_SCOPE)
     }
 
+    def rawObject() {
+        def comp = components?.get(0)
+        def result = comp?.getAttribute('$JQ_BINDING_OBJ$', Component.COMPONENT_SCOPE)
+        return result
+    }
+
     /**
      *
       * @return a bound object and optionally save all data from component to the object
      */
-    def object() {
+    def object(opts = [:]) {
         //
         // Retrieve the bound entity
         //
         def comp = components?.get(0)
         def result = comp?.getAttribute('$JQ_BINDING_OBJ$', Component.COMPONENT_SCOPE)
-        def map = comp?.getAttribute('$JQ_BINDING_MAP$', Component.COMPONENT_SCOPE)
+        def map = comp?.getAttribute('$JQ_FILL_MAP$', Component.COMPONENT_SCOPE)
 
         if(result == null) {
             LOG.debug("object() not found, checking from selectedItem.");
             if(comp.hasProperty('selectedItem')) {
+                map = comp?.selectedItem?.getAttribute('$JQ_FILL_MAP$', Component.COMPONENT_SCOPE)
                 result = comp?.selectedItem?.getAttribute('$JQ_BINDING_OBJ$', Component.COMPONENT_SCOPE)
+                comp = comp?.selectedItem
             }
         }
 
         if(result == null) {
             return null
         }
+
+
+        if(opts['merge'] == true) {
+            //
+            // Work around Hibernate no session
+            // re-attach to the current session
+            // before proceeding
+            //
+            if(result.respondsTo('merge')) {
+                result = result.merge()
+            }
+        }
+
+        def mc = result.metaClass
 
         map.each { expr, cid ->
 
@@ -794,25 +845,88 @@ class JQuery extends AbstractList<Component> {
             }
 
             def selectedComponents = null
-            if(selector instanceof String) {
-                selectedComponents = Selectors.find(comp, preprocess(selector))
+            if(selector instanceof String || selector instanceof GString) {
+                selectedComponents = Selectors.find(comp, preprocess(selector.toString()))
             } else if(selector instanceof Component) {
                 selectedComponents = [cid]
             }
 
-            for(c in selectedComponents) {
-                if(c.hasProperty('checked')) {
-                    LOG.debug("Setting obj[$expr] = ${c?.checked}")
-                    result["$expr"] = c?.checked
-                } else if(c.hasProperty('text')) {
-                    LOG.debug("Setting obj[$expr] = ${c?.text}")
-                    result["$expr"] = c?.text
-                } else  {
-                    LOG.debug("Setting obj[$expr] = ${c?.value}")
-                    result["$expr"] = c?.value
+            def objectToSet = result
+            def exprToSet = expr
+            def mp = null
+            if(expr.contains('.')) {
+                // it's going to be a complex prop
+                for(sube in expr.split(/\./)) {
+                    if(objectToSet.hasProperty(sube)) {
+                        mp = objectToSet.hasProperty(sube)
+                        exprToSet = sube
+                        if(mp.type == String  ||
+                           mp.type == Integer ||
+                           mp.type == Long    ||
+                           mp.type == Boolean ||
+                           mp.type == Float   ||
+                           mp.type == Double  ||
+                           mp.type == Character ) {
+                            // if it's a value field, stop the loop
+                            // objectToSet cannot be the field, but the property's owner
+                            break
+                        }
+                        objectToSet = objectToSet."${sube}"
+                    } else {
+                        break
+                    }
+                }
+            } else {
+                // a simple prop
+                mp = objectToSet.hasProperty(expr)
+            }
+            if(exprToSet != 'id' && exprToSet != 'version') {
+                for(c in selectedComponents) {
+                    switch(mp.type) {
+                        case String:
+                            def propToGet = "value"
+                            if(c.hasProperty('text'))       { propToGet = "text"  }
+                            else if(c.hasProperty('label')) { propToGet = "label" }
+
+                            if(propToGet != null) {
+                                if(converter != null && converter instanceof Closure)
+                                    objectToSet["$exprToSet"] = converter(c?."$propToGet")
+                                else
+                                    objectToSet["$exprToSet"] = c?."$propToGet"
+                            }
+
+                            break
+                        case Boolean:
+                            if(c.hasProperty('checked')) {
+                                if(converter != null && converter instanceof Closure)
+                                    objectToSet["$exprToSet"] = converter(c?.checked)
+                                else
+                                    objectToSet["$exprToSet"] = c?.checked
+                            }
+                            else {
+                                if(converter != null && converter instanceof Closure)
+                                    objectToSet["$exprToSet"] = converter(c?.value)
+                                else
+                                    objectToSet["$exprToSet"] = c?.value
+                            }
+                            break
+                        case Integer:
+                        case Double:
+                        case Float:
+                        case Long:
+                            if(converter != null && converter instanceof Closure)
+                                objectToSet["$exprToSet"] = converter(c?.value)
+                            else
+                                objectToSet["$exprToSet"] = c?.value
+                            break
+                        default:
+                            if(converter != null && converter instanceof Closure)
+                                objectToSet["$exprToSet"] = converter(c?.value)
+                            else
+                                objectToSet["$exprToSet"] = c?.value
+                    }
                 }
             }
-
         }
 
         return result
@@ -897,13 +1011,42 @@ class JQuery extends AbstractList<Component> {
     }
 
     /**
+     * Set model with multiple selection support. Work only with the first component in the selected result.
+     *
+     * @param model
+     * @return self reference
+     */
+    def setModel(model) {
+        if(components.size() == 0)
+            return this
+
+        def comp = components?.get(0)
+        if(comp.hasProperty('model') && comp.hasProperty('multiple')) {
+            model.setMultiple(comp.multiple)
+            comp.model = model
+            comp.invalidate()
+        }
+
+        return this
+    }
+
+    /**
+     * Get parent of all selected components.
+     *
+     * @return JQuery wrapper for the parents
+     */
+    def parent() {
+        return new JQuery(components.collect { c -> c.parent })
+    }
+
+    /**
      * Redirect method that is able to hold parameters across pages.
      *
-     * @param args a Map that must contain at least {@code url} and {@code params}
+     * @param args a Map that must contain at least {@code uri} and {@code params}
      * @return self reference
      */
     def redirect(Map args) {
-        return redirect(args['url'], args['params'])
+        return redirect(args['uri'], args['params'])
     }
 
     /**
@@ -917,7 +1060,7 @@ class JQuery extends AbstractList<Component> {
         def comp = components?.get(0)
         if(comp) {
             comp.src = ""
-            comp.desktop.setAttribute('$JQ_REQUEST_PARAMS$', params)
+            Executions.current.desktop.setAttribute('$JQ_REQUEST_PARAMS$', params)
             comp.src = url
         }
 

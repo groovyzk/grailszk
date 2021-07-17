@@ -40,3 +40,12 @@ if(! (new File(targetFile).exists())) {
            overwrite: true
   )
 }
+
+//
+// issue #326 - removed ZkUrlMappings out of the conf
+// and copy ZkUrlMappings.groovy only upon installation
+//
+if(new File("${basedir}/grails-app/conf/ZkUrlMappings.groovy").exists() == false) {
+    ant.copy(file: "${zkPluginDir}/src/templates/ZkUrlMappings.groovy",
+             todir:"${basedir}/grails-app/conf")
+}

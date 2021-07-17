@@ -1,9 +1,0 @@
-<zk>
-    <window apply="jquery.TestAfterComposer">
-        <vlayout>
-            <button id="delete">Delete</button>
-            <label id="result1"/>
-            <label id="result2"/>
-        </vlayout>
-    </window>
-</zk>

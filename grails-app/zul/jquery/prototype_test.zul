@@ -1,5 +1,0 @@
-<zk>
-    <window apply="jquery.PrototypeComposer">
-        <combobox id="combo" text="Empty"/>
-    </window>
-</zk>

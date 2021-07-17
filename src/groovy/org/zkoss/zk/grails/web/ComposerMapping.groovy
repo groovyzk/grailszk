@@ -40,21 +40,16 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
         }
 
         for(Resource r: resources) {
-            def slurper = new XmlSlurper()
-            slurper.setFeature('http://xml.org/sax/features/namespaces', false)
-            def root = slurper.parse(r.getInputStream())
-            def node = root.'**'.find {
-                def attrs = it.attributes()
-                if(attrs.containsKey('apply')) {
-                    return attrs.get('apply') =~ '.*Composer'
+            String url = r.getURL().toString()
+            String zulFilePath = url.substring(url.lastIndexOf("grails-app/zul") + 14)
+            String lines = r.getInputStream().getText()
+            def matcher = lines =~ /apply=\"([\w\.]+)\"/
+            if(matcher.find()) {
+                matcher.each { group ->
+                    def composerName = group[1]
+                    LOG.info("Found ${composerName} : ${r.getURL()}")
+                    map[composerName.toLowerCase()] = zulFilePath
                 }
-                return false
-            }
-            if(node) {
-                def composerName = node.attributes().get('apply')
-                LOG.info("Found ${composerName} : ${r.getURL()}")
-                String url = r.getURL().toString()
-                map[composerName.toLowerCase()] = url.substring(url.lastIndexOf("grails-app/zul") + 14)
             }
         }
     }
@@ -81,7 +76,11 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
      * After the bean is instantiated, the method {@link #refresh()} will be called.
      **/
     public void afterPropertiesSet() throws Exception {
-        refresh()
+        try {
+            refresh()
+        } catch(Throwable e) {
+            // ignore
+        }
     }
 
 }

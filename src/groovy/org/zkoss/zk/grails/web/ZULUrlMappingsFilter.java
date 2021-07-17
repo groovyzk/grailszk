@@ -15,6 +15,7 @@ package org.zkoss.zk.grails.web;
  * limitations under the License.
  */
 
+import grails.util.Metadata;
 import grails.web.UrlConverter;
 
 import java.io.IOException;
@@ -79,9 +80,9 @@ import org.zkoss.zk.grails.web.ZULUrlMappingsFilter;
  */
 public class ZULUrlMappingsFilter extends OncePerRequestFilter {
 
-    private static final Log LOG = LogFactory.getLog(ZULUrlMappingsFilter.class);
-
+    public static final boolean WAR_DEPLOYED = Metadata.getCurrent().isWarDeployed();
     private UrlPathHelper urlHelper = new UrlPathHelper();
+    private static final Log LOG = LogFactory.getLog(ZULUrlMappingsFilter.class);
     private static final String GSP_SUFFIX = ".gsp";
     private static final String JSP_SUFFIX = ".jsp";
     private static final String ZUL_SUFFIX = ".zul";
@@ -101,11 +102,11 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
         urlHelper.setUrlDecode(false);
         final ServletContext servletContext = getServletContext();
         final WebApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
-        this.handlerInterceptors = WebUtils.lookupHandlerInterceptors(servletContext);
-        this.application = WebUtils.lookupApplication(servletContext);
-        this.viewResolver = WebUtils.lookupViewResolver(servletContext);
+        handlerInterceptors = WebUtils.lookupHandlerInterceptors(servletContext);
+        application = WebUtils.lookupApplication(servletContext);
+        viewResolver = WebUtils.lookupViewResolver(servletContext);
         ApplicationContext mainContext = application.getMainContext();
-        this.urlConverter = mainContext.getBean(UrlConverter.BEAN_NAME, UrlConverter.class);
+        urlConverter = mainContext.getBean(UrlConverter.BEAN_NAME, UrlConverter.class);
         if (application != null) {
             grailsConfig = new GrailsConfig(application);
         }
@@ -157,8 +158,8 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
         if (areFileExtensionsEnabled()) {
             String format = WebUtils.getFormatFromURI(uri, mimeTypes);
             if (format != null) {
-                MimeType[] configuredMimes = mimeTypes != null ? mimeTypes : MimeType.getConfiguredMimeTypes();
-                // only remove the file extension if its one of the configured mimes in Config.groovy
+                MimeType[] configuredMimes = mimeTypes == null ? MimeType.getConfiguredMimeTypes() : mimeTypes;
+                // only remove the file extension if it's one of the configured mimes in Config.groovy
                 for (MimeType configuredMime : configuredMimes) {
                     if (configuredMime.getExtension().equals(format)) {
                         request.setAttribute(GrailsApplicationAttributes.RESPONSE_FORMAT, format);
@@ -199,22 +200,37 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                         viewName = info.getViewName();
                         if (viewName == null && info.getURI() == null) {
                             final String controllerName = info.getControllerName();
-                            GrailsClass controller = application.getArtefactForFeature(ControllerArtefactHandler.TYPE, WebUtils.SLASH + urlConverter.toUrlElement(controllerName) + WebUtils.SLASH + urlConverter.toUrlElement(action));
+                            String pluginName = info.getPluginName();
+                            String featureUri = WebUtils.SLASH + urlConverter.toUrlElement(controllerName) + WebUtils.SLASH + urlConverter.toUrlElement(action);
+
+                            Object featureId = null;
+                            if (pluginName != null) {
+                                Map featureIdMap = new HashMap();
+                                featureIdMap.put("uri", featureUri);
+                                featureIdMap.put("pluginName", pluginName);
+                                featureId = featureIdMap;
+                            } else {
+                                featureId = featureUri;
+                            }
+                            GrailsClass controller = application.getArtefactForFeature(ControllerArtefactHandler.TYPE, featureId);
                             if (controller == null) {
+                                if(uri.endsWith(".zul")) {
+                                    RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
+                                    dispatcher.forward(request, response);
+                                    dispatched = true;
+                                    break;
+                                }
                                 String zul = composerMapping.resolveZul(controllerName);
                                 if(zul != null) {
                                     RequestDispatcher dispatcher = request.getRequestDispatcher(zul);
                                     dispatcher.forward(request, response);
                                     dispatched = true;
                                     break;
-                                } else if(uri.endsWith(".zul")) {
-                                    RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
-                                    dispatcher.forward(request, response);
-                                    dispatched = true;
-                                    break;
                                 }
                             } else {
                                 webRequest.setAttribute(GrailsApplicationAttributes.CONTROLLER_NAME_ATTRIBUTE, controller.getLogicalPropertyName(), WebRequest.SCOPE_REQUEST);
+                                webRequest.setAttribute(GrailsApplicationAttributes.GRAILS_CONTROLLER_CLASS, controller, WebRequest.SCOPE_REQUEST);
+                                // webRequest.setAttribute(GrailsApplicationAttributes. GRAILS_CONTROLLER_CLASS_AVAILABLE, Boolean.TRUE, WebRequest.SCOPE_REQUEST);
                             }
                         }
                     } catch (Exception e) {
@@ -228,7 +244,9 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
 
                     dispatched = true;
 
-                    checkForCompilationErrors(request);
+                    if (!WAR_DEPLOYED) {
+                        checkDevelopmentReloadingState(request);
+                    }
 
                     request = checkMultipart(request);
 
@@ -318,15 +336,22 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
         return composers == null || composers.length == 0;
     }
 
-    private void checkForCompilationErrors(HttpServletRequest request) {
-        if (application.isWarDeployed()) {
-            return;
+    private void checkDevelopmentReloadingState(HttpServletRequest request) {
+        while(GrailsProjectWatcher.isReloadInProgress()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // ignore
+            }
         }
-
         if (request.getAttribute(GrailsExceptionResolver.EXCEPTION_ATTRIBUTE) != null) return;
         MultipleCompilationErrorsException compilationError = GrailsProjectWatcher.getCurrentCompilationError();
         if (compilationError != null) {
             throw compilationError;
+        }
+        Throwable currentReloadError = GrailsProjectWatcher.getCurrentReloadError();
+        if (currentReloadError != null) {
+            throw new RuntimeException(currentReloadError);
         }
     }
 

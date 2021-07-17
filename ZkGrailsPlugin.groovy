@@ -1,25 +1,28 @@
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
-
 import grails.util.Environment
 import grails.util.GrailsUtil
+import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 import org.springframework.core.io.FileSystemResource
 import org.zkoss.zk.grails.ZkBuilder
 import org.zkoss.zk.grails.ZkConfigHelper
+import org.zkoss.zk.grails.artefacts.*
 import org.zkoss.zk.grails.composer.GrailsBindComposer
+import org.zkoss.zk.grails.composer.JQueryComposer
+import org.zkoss.zk.grails.dev.DevHolder
+import org.zkoss.zk.grails.extender.ListboxExtender
 import org.zkoss.zk.grails.livemodels.LiveModelBuilder
 import org.zkoss.zk.grails.livemodels.SortingPagingListModel
+import org.zkoss.zk.grails.select.JQuery
 import org.zkoss.zk.grails.web.ComposerMapping
-import org.zkoss.zk.ui.event.EventListener
-import org.zkoss.zk.grails.artefacts.*
-import org.zkoss.zk.grails.dev.DevHolder
 import org.zkoss.zk.ui.Component
-import org.zkoss.zk.grails.composer.*
+import org.zkoss.zk.ui.Executions
+import org.zkoss.zk.ui.event.EventListener
+import org.zkoss.lang.Library
 
 class ZkGrailsPlugin {
     // the plugin version
-    def version = "2.2.0"
+    def version = "2.4.0"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.2 > 2.2.1"
+    def grailsVersion = "2.3 > 2.3.8"
 
     def loadAfter = ['core', 'controllers']
 
@@ -103,6 +106,8 @@ and seamlessly integrates them with Grails\' infrastructures.
 
     def doWithSpring = {
 
+        Library.setProperty("org.zkoss.web.servlet.http.URLEncoder", "org.zkoss.zk.grails.web.URLEncoder")
+
         if(Environment.current == Environment.DEVELOPMENT) {
             devHolder(org.zkoss.zk.grails.dev.DevHolder) { bean ->
                 bean.scope = "singleton"
@@ -142,13 +147,6 @@ and seamlessly integrates them with Grails\' infrastructures.
             bean.scope = 'prototype'
             bean.autowire = 'byName'
         }
-
-        /*
-        instanceAbstractComposersApi(ComposersApi.class) { bean ->
-            bean.scope = 'prototype'
-            bean.autowire = 'byName'
-        }
-        */
 
         //
         // Registering Composer Beans
@@ -282,10 +280,11 @@ and seamlessly integrates them with Grails\' infrastructures.
             urlMappingFilter.'filter-class'.replaceNode {
                 'filter-class'(urlMappingFilterClass)
             }
+
             //
             // Require a legacy config for servlet version
             //
-            if(application.metadata['app.servlet.version'] >= '3.0') {
+            if(application.metadata.getServletVersion() >= '3.0') {
                 pageFilter.'filter-class' + {
                     'async-supported'('true')
                 }
@@ -356,7 +355,7 @@ and seamlessly integrates them with Grails\' infrastructures.
             if(clazz.superclass == Script.class) {
                 clazz.metaClass.methodMissing = { String name, args ->
                     if(name=='$') {
-                        return composer.select(args)
+                        return JQuery.select(composer.root, args)
                     }
                     throw new MissingMethodException(name, delegate.class, args)
                 }
@@ -417,9 +416,15 @@ and seamlessly integrates them with Grails\' infrastructures.
         }
 
         org.zkoss.zk.ui.AbstractComponent.metaClass.append = { closure ->
-            closure.delegate = new ZkBuilder(parent: delegate)
-            closure.resolveStrategy = Closure.OWNER_FIRST
-            closure.call()
+            if(closure.delegate instanceof groovy.lang.Binding) {
+                closure.delegate = new ZkBuilder(bind: closure.delegate, parent: delegate)
+                closure.resolveStrategy = Closure.DELEGATE_FIRST
+                closure.call()
+            } else {
+                closure.delegate = new ZkBuilder(parent: delegate)
+                closure.resolveStrategy = Closure.OWNER_FIRST
+                closure.call()
+            }
         }
 
         org.zkoss.zul.AbstractListModel.metaClass.getAt = { Integer i ->
@@ -430,15 +435,23 @@ and seamlessly integrates them with Grails\' infrastructures.
         // simple session
         //
         org.zkoss.zk.ui.http.SimpleSession.metaClass.getAt = { String name ->
+            if(name == "id") {
+                return Executions.current.getNativeRequest().getSession().getId()
+            }
             delegate.getAttribute(name)
         }
         org.zkoss.zk.ui.http.SimpleSession.metaClass.putAt = { String name, value ->
+            if(name == "id") return
             delegate.setAttribute(name, value)
         }
         org.zkoss.zk.ui.http.SimpleSession.metaClass.propertyMissing = { String name ->
+            if(name == "id") {
+                return Executions.current.getNativeRequest().getSession().getId()
+            }
             delegate.getAttribute(name)
         }
         org.zkoss.zk.ui.http.SimpleSession.metaClass.propertyMissing << { String name, value ->
+            if(name == "id") return
             delegate.setAttribute(name, value)
         }
 
@@ -449,23 +462,19 @@ and seamlessly integrates them with Grails\' infrastructures.
             }
         }
 
+        // Support <listbox/> multiple = true. Issue #332
+        org.zkoss.zul.Listbox.metaClass.setModel = {org.zkoss.zul.ListModel model ->
+            ListboxExtender.setModel(delegate, model)
+        }
+
+        // Help getting model. Issue #336
+        org.zkoss.zul.Listbox.metaClass.getModel = { ->
+            ListboxExtender.getModel(delegate)
+        }
+
     }
 
     def onChange = { event ->
-
-        if(event.source instanceof FileSystemResource) {
-            DevHolder devHolder = event.ctx.getBean('devHolder')
-            synchronized(devHolder) {
-                def fsr = (event.source as FileSystemResource)
-                def basedir = System.properties["base.dir"].replace('\\','/') + '/grails-app'
-                def pathToKeep = (fsr.path - basedir)
-                if(fsr.path.endsWith('.zul')) {
-                    devHolder.add(pathToKeep, fsr.file)
-                }
-            }
-        }
-
-        if(event.source instanceof Class == false) return
 
         def context = event.ctx
         if (!context) {
@@ -473,6 +482,19 @@ and seamlessly integrates them with Grails\' infrastructures.
                 log.debug("Application context not found. Can't reload")
             return
         }
+
+        if(event.source instanceof FileSystemResource) {
+            DevHolder devHolder = context.getBean('devHolder')
+            synchronized(devHolder) {
+                def fsr = (event.source as FileSystemResource)
+                def pathToKeep = fsr.path.split("grails-app")[1].replace('\\','/')
+                if(fsr.path.endsWith('.zul')) {
+                    devHolder.add(pathToKeep, fsr.file)
+                }
+            }
+        }
+
+        if(event.source instanceof Class == false) return
 
         //
         //  Composer

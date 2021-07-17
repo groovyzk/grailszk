@@ -60,6 +60,8 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zkplus.spring.SpringUtil;
 
+import org.zkoss.zk.grails.route.RouteEngine;
+
 public class GrailsComposer extends GenericForwardComposer<Component> {
 
     private static final long serialVersionUID = -5307023773234300419L;
@@ -150,10 +152,31 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         try {
             super.doAfterCompose(comp);
             this.root = comp;
-            this.params = (Map)(comp.getDesktop().removeAttribute("$JQ_REQUEST_PARAMS$"));
+            //
+            // Issue #328 - check if the desktop is null to prevent NPE
+            //
+            // if(comp.getDesktop() == null) {
+            //     this.params = new HashMap();
+            // } else {
+            //    this.params = (Map)(comp.getDesktop().removeAttribute("$JQ_REQUEST_PARAMS$"));
+            // }
+            // this should be working with Issue #328 as well
+            Desktop desktop = Executions.getCurrent().getDesktop();
+            if(desktop == null) {
+                this.params = new HashMap();
+            } else {
+                this.params = (Map)desktop.removeAttribute("$JQ_REQUEST_PARAMS$");
+            }
+
+            if(this.params == null) {
+                this.params = new HashMap();
+            }
 
             injectComet();
 
+            handleRoutingClosure(comp);
+
+            // work only on <window/> component
             comp.addEventListener("onBookmarkChange", new org.zkoss.zk.ui.event.EventListener<Event>() {
                 public void onEvent(Event event) throws Exception {
                     BookmarkEvent be = (BookmarkEvent)event;
@@ -163,13 +186,12 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
                     }
 
                     String[] parsedHashTag = hashTag.split("\\/");
-                    String[] args = Arrays.copyOfRange(parsedHashTag,1,parsedHashTag.length);
+                    String[] args = Arrays.copyOfRange(parsedHashTag, 1, parsedHashTag.length);
                     MetaClass mc = InvokerHelper.getMetaClass(GrailsComposer.this);
                     if(mc.respondsTo(GrailsComposer.this, parsedHashTag[0]).size() > 0) {
                         InvokerHelper.invokeMethod(GrailsComposer.this, parsedHashTag[0], args);
                     }
 
-                    // TODO parse to be inputs
                 }
             });
 
@@ -283,6 +305,38 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         } catch (BeansException e) { do nothing }
         return true;
     }*/
+
+    private RouteEngine getRouteEngine() {
+        Desktop desktop = Executions.getCurrent().getDesktop();
+        RouteEngine routeEngine = (RouteEngine)desktop.getAttribute("$ZK_GRAILS_ROUTE_ENGINE$");
+        if(routeEngine == null) {
+            routeEngine = new RouteEngine();
+            desktop.setAttribute("$ZK_GRAILS_ROUTE_ENGINE$", routeEngine);
+        }
+        return routeEngine;
+    }
+
+    private void handleRoutingClosure(Component comp) throws Exception {
+        Object c = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "routing");
+        if (c instanceof Closure) {
+            Closure routing = (Closure)c;
+            final RouteEngine routeEngine = getRouteEngine();
+            routing.setDelegate(routeEngine);
+            routing.setResolveStrategy(Closure.DELEGATE_FIRST);
+            InvokerHelper.invokeClosure(c, new Object[]{routeEngine});
+
+            Component root = comp.getRoot();
+            if(root != null) {
+                root.addEventListener("onBookmarkChange", new org.zkoss.zk.ui.event.EventListener<Event>() {
+                    public void onEvent(Event event) throws Exception {
+                        BookmarkEvent be = (BookmarkEvent)event;
+                        String bookmark = be.getBookmark();
+                        InvokerHelper.invokeMethod(routeEngine, "process", new Object[]{bookmark});
+                    }
+                });
+            }
+        }
+    }
 
     private void handleAfterComposeClosure(Component wnd) throws Exception {
         Object c = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "afterCompose");
