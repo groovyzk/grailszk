@@ -1,0 +1,18 @@
+<zk>
+
+    <window apply="jquery.DatabindingNestedPropComposer">
+
+        <listbox id="lstMain">
+            <listhead>
+                <listheader label="User Name" />
+                <listheader label="strField" />
+                <listheader label="boolField" />
+                <listheader label="intField" />
+                <listheader label="dateField" />
+                <listheader label="doubleField" />
+            </listhead>
+        </listbox>
+        <label id="result"/>
+    </window>
+
+</zk>

@@ -1,0 +1,11 @@
+<zk>
+    <window apply="jquery.TemplateComposer">
+        <listbox id="list">
+            <listhead>
+                <listheader value="name" label="Name"/>
+                <listheader value="lastName" label="Last Name"/>
+            </listhead>
+        </listbox>
+        <paging id="pagingId"/>
+    </window>
+</zk>

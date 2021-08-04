@@ -1,0 +1,13 @@
+<zk xmlns:ca="client/attribute">
+    <window apply="jquery.TextComposer">
+        <vlayout>
+            <label id="result" ca:data-id="result"/>
+            <label id="label" ca:data-id="label">label</label>
+            <label id="result1" ca:data-id="result1"/>
+            <label id="result2" ca:data-id="result2"/>
+            <button id="button">Button</button>
+            <label id="result3" ca:data-id="result3"/>
+            <label id="result4" ca:data-id="result4"/>
+        </vlayout>
+    </window>
+</zk>

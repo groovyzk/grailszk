@@ -38,7 +38,7 @@ public class LiveNoDecorator extends BaseWebAppDecorator implements Decorator {
         String contextPath = request.getContextPath();
         if(original.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
             String link = grailsLinkGenerator.resource(new HashMap(){{
-                put("dir","ext/js");
+                put("dir","js");
                 put("file","z-it-live.js");
                 put("plugin", "zk");
             }});

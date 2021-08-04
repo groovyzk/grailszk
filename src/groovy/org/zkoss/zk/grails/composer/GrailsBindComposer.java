@@ -10,29 +10,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zkoss.bind.annotation.AfterCompose;
-import org.zkoss.bind.impl.AnnotateBinderHelper;
+import org.zkoss.bind.impl.AbstractAnnotatedMethodInvoker;
 import org.zkoss.bind.impl.AnnotationUtil;
 import org.zkoss.bind.impl.BindEvaluatorXUtil;
-import org.zkoss.bind.impl.BinderImpl;
 import org.zkoss.bind.impl.MiscUtil;
 import org.zkoss.bind.impl.ValidationMessagesImpl;
-import org.zkoss.bind.impl.AbstractAnnotatedMethodInvoker;
 import org.zkoss.bind.sys.BindEvaluatorX;
-import org.zkoss.bind.sys.BinderCtrl;
 import org.zkoss.bind.sys.ValidationMessages;
 import org.zkoss.bind.sys.debugger.BindingAnnotationInfoChecker;
 import org.zkoss.bind.sys.debugger.DebuggerFactory;
+import org.zkoss.bind.tracker.impl.BindUiLifeCycle;
 import org.zkoss.lang.Strings;
+import org.zkoss.lang.Classes;
+import org.zkoss.lang.Library;
 import org.zkoss.util.CacheMap;
 import org.zkoss.util.IllegalSyntaxException;
-import org.zkoss.util.logging.Log;
+
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.UiException;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.metainfo.Annotation;
 import org.zkoss.zk.ui.metainfo.ComponentInfo;
@@ -64,10 +65,10 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
 
     private static final long serialVersionUID = 1463169907348730644L;
 
-    private static final Log _log = Log.lookup(BindComposer.class);
+    private static final Logger _log = LoggerFactory.getLogger(GrailsBindComposer.class);
 
-    private static final String VM_ID = "$VM_ID$";
-    private static final String BINDER_ID = "$BINDER_ID$";
+    protected static final String VM_ID = "$VM_ID$";
+    protected static final String BINDER_ID = "$BINDER_ID$";
 
     private Object _viewModel;
     private AnnotateBinder _binder;
@@ -76,18 +77,17 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
     private final Map<String, Validator> _validators;
     private final BindEvaluatorX evalx;
 
-    private static final String ID_ANNO = "id";
-    private static final String INIT_ANNO = "init";
+    protected static final String ID_ANNO = "id";
+    protected static final String INIT_ANNO = "init";
 
-    private static final String VALUE_ANNO_ATTR = "value";
+    protected static final String VALUE_ANNO_ATTR = "value";
 
-    private static final String COMPOSER_NAME_ATTR = "composerName";
-    private static final String VIEW_MODEL_ATTR = "viewModel";
-    private static final String BINDER_ATTR = "binder";
-    private static final String VALIDATION_MESSAGES_ATTR = "validationMessages";
+    protected static final String VIEW_MODEL_ATTR = "viewModel";
+    protected static final String BINDER_ATTR = "binder";
+    protected static final String VALIDATION_MESSAGES_ATTR = "validationMessages";
 
-    private static final String QUEUE_NAME_ANNO_ATTR = "queueName";
-    private static final String QUEUE_SCOPE_ANNO_ATTR = "queueScope";
+    protected static final String QUEUE_NAME_ANNO_ATTR = "queueName";
+    protected static final String QUEUE_SCOPE_ANNO_ATTR = "queueScope";
 
     private final static Map<Class<?>, List<Method>> _afterComposeMethodCache =
         new CacheMap<Class<?>, List<Method>>(600,CacheMap.DEFAULT_LIFETIME);
@@ -158,10 +158,14 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
             _binder.setValidationMessages(_vmsgs);
         }
 
-        BinderKeeper keeper = BinderKeeper.getInstance(comp);
-        keeper.book(_binder, comp);
+        try{
+            BinderKeeper keeper = BinderKeeper.getInstance(comp);
+            keeper.book(_binder, comp);
 
-        _binder.init(comp, _viewModel, getViewModelInitArgs(evalx,comp));
+            _binder.init(comp, _viewModel, getViewModelInitArgs(evalx,comp));
+        }catch(Exception x){
+            throw MiscUtil.mergeExceptionInfo(x, comp);
+        }
 
         //to apply composer-name
         ConventionWires.wireController(comp, this);
@@ -244,7 +248,11 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
                 if(applicationContext.containsBean(beanOrClassName)) {
                     vm = applicationContext.getBean(beanOrClassName);
                 } else {
-                    Class<?> vmClass = comp.getPage().resolveClass(beanOrClassName);
+                    Page page = comp.getPage();
+                    if(page==null) {
+                        throw new UiException(MiscUtil.formatLocationMessage("can't find Page to resolve a view model class :'"+vm+"'",initanno));
+                    }
+                    Class<?> vmClass = page.resolveClass(beanOrClassName);
                     try {
                         vm = applicationContext.getBean(vmClass);
                     } catch(BeansException be) {
@@ -296,13 +304,21 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
             binder = AnnotationUtil.testString(initanno.getAttributeValues(VALUE_ANNO_ATTR),initanno);
             String name = AnnotationUtil.testString(initanno.getAttributeValues(QUEUE_NAME_ANNO_ATTR),initanno);
             String scope = AnnotationUtil.testString(initanno.getAttributeValues(QUEUE_SCOPE_ANNO_ATTR),initanno);
-            if(binder!=null){
-                if(name!=null){
-                    _log.warning(MiscUtil.formatLocationMessage(QUEUE_NAME_ANNO_ATTR +" is not available if you use custom binder",initanno));
+            //if no binder, create default binder with custom queue name and scope
+            String expr;
+            if(name!=null){
+                name = BindEvaluatorXUtil.eval(evalx,comp,expr=name,String.class);
+                if(Strings.isBlank(name)){
+                    throw new UiException(MiscUtil.formatLocationMessage("evaluated queue name is empty, expression is "+expr,initanno));
                 }
-                if(scope!=null){
-                    _log.warning(MiscUtil.formatLocationMessage(QUEUE_SCOPE_ANNO_ATTR +" is not available if you use custom binder",initanno));
+            }
+            if(scope!=null){
+                scope = BindEvaluatorXUtil.eval(evalx,comp,expr=scope,String.class);
+                if(Strings.isBlank(scope)){
+                    throw new UiException(MiscUtil.formatLocationMessage("evaluated queue scope is empty, expression is "+expr,initanno));
                 }
+            }
+            if(binder!=null) {
 
                 binder = BindEvaluatorXUtil.eval(evalx,comp,(String)binder,Object.class);
                 try {
@@ -310,7 +326,7 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
                         binder = comp.getPage().resolveClass((String)binder);
                     }
                     if(binder instanceof Class<?>){
-                        binder = ((Class<?>)binder).newInstance();
+                        binder = ((Class<?>)binder).getDeclaredConstructor(String.class, String.class).newInstance(name, scope);
                     }
                 } catch (Exception e) {
                     throw new UiException(e.getMessage(),e);
@@ -320,24 +336,10 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
                 }
 
             }else {
-                //no binder, create default binder with custom queue name and scope
-                String expr;
-                if(name!=null){
-                    name = BindEvaluatorXUtil.eval(evalx,comp,expr=name,String.class);
-                    if(Strings.isBlank(name)){
-                        throw new UiException(MiscUtil.formatLocationMessage("evaluated queue name is empty, expression is "+expr,initanno));
-                    }
-                }
-                if(scope!=null){
-                    scope = BindEvaluatorXUtil.eval(evalx,comp,expr=scope,String.class);
-                    if(Strings.isBlank(scope)){
-                        throw new UiException(MiscUtil.formatLocationMessage("evaluated queue scope is empty, expression is "+expr,initanno));
-                    }
-                }
-                binder = new AnnotateBinder(name,scope);
+                binder = newAnnotateBinder(name, scope); //ZK-2288
             }
         }else{
-            binder = new AnnotateBinder();
+            binder = newAnnotateBinder(null, null); //ZK-2288
         }
 
         //put to attribute, so binder could be referred by the name
@@ -345,6 +347,21 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
         comp.setAttribute(BINDER_ID, bname);
 
         return (AnnotateBinder)binder;
+    }
+
+    //ZK-2288: A way to specify a customized default AnnotateBinder.
+    private AnnotateBinder newAnnotateBinder(String name, String scope) {
+        String clznm = Library.getProperty("org.zkoss.bind.AnnotateBinder.class");
+        if (clznm != null){
+            try {
+                return (AnnotateBinder)
+                        Classes.newInstanceByThread(clznm, new Class[] {String.class, String.class}, new String[] {name, scope});
+            } catch (Exception e) {
+                throw new UiException("Can't initialize binder",e);
+            }
+        } else {
+            return new AnnotateBinder(name, scope);
+        }
     }
 
     private ValidationMessages initValidationMessages(BindEvaluatorX evalx, Component comp,Binder binder) {
@@ -498,6 +515,9 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
                 this.comp = comp;
             }
             public void load(){
+                //ZK-1699, mark the comp and it's children are handling, to prevent load twice in include.src case
+                BindUiLifeCycle.markLifeCycleHandling(comp);
+
                 //load data
                 binder.loadComponent(comp, true);//load all bindings
             }
@@ -510,4 +530,3 @@ public class GrailsBindComposer<T extends Component> implements Composer<T>, Com
     }
 
 }//end of class...
-

@@ -1,0 +1,6 @@
+<zk:grails>
+    <bs:window apply="com.Mapping1Composer"/>
+    <bs:fake1 apply="com.Mapping2Composer"/>
+    <bs:fake2 apply="com.Mapping3Composer"/>
+    <bs:fake3 apply="com.Mapping4Composer"/>
+</zk:grails>

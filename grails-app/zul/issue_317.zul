@@ -1,0 +1,5 @@
+<zk>
+    <window apply="test.Issue317Composer">
+        <button id="ok">OK</button>
+    </window>
+</zk>

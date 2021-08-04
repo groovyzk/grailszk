@@ -160,7 +160,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             if(path.lastIndexOf("." + sExt) != -1) return true;
         }
 
-        final String[] ext = new String[]{".dsp",".zhtml", ".svg", ".xml2html"};
+        final String[] ext = new String[]{".dsp", ".zhtml", ".svg", ".xml2html"};
         for(int i=0;i < ext.length; i++) {
             if(path.lastIndexOf(ext[i]) != -1) return true;
         }
@@ -276,7 +276,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                     StreamCharBuffer buffer = new StreamCharBuffer();
                     LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
                     String link = grailsLinkGenerator.resource(new HashMap(){{
-                        put("dir","ext/js");
+                        put("dir","js");
                         put("file","z-it-live.js");
                         put("plugin", "zk");
                     }});
@@ -304,7 +304,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                     if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
                         LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
                         String link = grailsLinkGenerator.resource(new HashMap(){{
-                            put("dir","ext/js");
+                            put("dir","js");
                             put("file","z-it-live.js");
                             put("plugin", "zk");
                         }});

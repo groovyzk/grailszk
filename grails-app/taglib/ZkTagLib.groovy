@@ -139,6 +139,23 @@ class ZkTagLib implements ApplicationContextAware {
         return u
     }
 
+    def r = { attrs ->
+        // Avoid using resources-managed directory.
+        // Use web-app/ext/ to hold external things
+        def dir  = attrs.remove('dir')
+        def file = attrs.remove('file')
+        def absolute = attrs.remove('absolute')
+        if(!absolute) {
+            def link = grailsLinkGenerator.resource([dir: "static/$dir", file: file])
+            def result = link.replaceFirst(request.contextPath, "")
+            out << result
+            // out << grailsLinkGenerator.resource([dir: "static/${dir}", file: file, absolute: true])
+        } else {
+            out << grailsLinkGenerator.resource([dir: "static/${dir}", file: file, absolute: true])
+        }
+    }
+
+
     def resource = { attrs ->
         // Avoid using resources-managed directory.
         // Use web-app/ext/ to hold external things
@@ -146,13 +163,13 @@ class ZkTagLib implements ApplicationContextAware {
         def file = attrs.remove('file')
         def absolute = attrs.remove('absolute')
         if(!absolute) {
-            def link = grailsLinkGenerator.resource([dir: dir, file: file])
-            def result = link.replaceFirst(request.contextPath, "/static/ext")
+            def link = grailsLinkGenerator.resource([dir: "static/$dir", file: file])
+            def result = link.replaceFirst(request.contextPath, "")
             out << result
+            // out << grailsLinkGenerator.resource([dir: "static/${dir}", file: file, absolute: true])
         } else {
-            out << grailsLinkGenerator.resource([dir: "static/ext/${dir}", file: file, absolute: true])
+            out << grailsLinkGenerator.resource([dir: "static/${dir}", file: file, absolute: true])
         }
-
     }
 
     private cacheZul(url) {

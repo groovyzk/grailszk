@@ -1,0 +1,12 @@
+<zk xmlns:ca="client/attribute">
+    <window apply="route.RouteComposer">
+        <vlayout>
+            <a href="#/project/1">Project 1</a>
+            <a href="#/project/2">Project 2</a>
+            <a href="#/blog/ck">Blog 1</a>
+            <a href="#/blog/me">Blog 2</a>
+        </vlayout>
+        <separator bar="true"/>
+        <label id="result" ca:data-id="result"/>
+    </window>
+</zk>

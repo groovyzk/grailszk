@@ -1,0 +1,5 @@
+<zk xmlns:ca="client/attribute">
+    <window id="wnd" apply="jquery.ParentComposer">
+        <button id="btn" ca:data-id="btn">Nothing</button>
+    </window>
+</zk>

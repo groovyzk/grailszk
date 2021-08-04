@@ -1,0 +1,6 @@
+<zk>
+    <window id="wndMain" apply="zk.Issue318Composer">
+        <button id="btnStart" label="Start"/>
+        <label id="lblTest">Ready</label>
+    </window>
+</zk>

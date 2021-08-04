@@ -34,9 +34,10 @@ if(! (new File(targetFile).exists())) {
 //
 // Copy ZK's logos - always overwrite
 //
+// removed /ext
 ["grails_logo.png","zkpowered_l.png", "zkpowered_s.png"].each { f ->
-  ant.copy(file:"${zkPluginDir}/web-app/ext/images/${f}",
-           todir:"${basedir}/web-app/ext/images/",
+  ant.copy(file:"${zkPluginDir}/web-app/images/${f}",
+           todir:"${basedir}/web-app/images/",
            overwrite: true
   )
 }

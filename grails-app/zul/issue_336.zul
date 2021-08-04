@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?init class="org.zkoss.zkplus.databind.AnnotateDataBinderInit" ?>
+<?variable-resolver class="org.zkoss.zkplus.spring.DelegatingVariableResolver"?>
+
+<zk xmlns="http://www.zkoss.org/2005/zul"
+    xmlns:h="http://www.w3.org/1999/xhtml"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.zkoss.org/2005/zul http://www.zkoss.org/2005/zul/zul.xsd">
+
+    <window apply="zk.Issue336Composer">
+
+        <listbox id="testListbox" multiple="true" checkmark="true" mold="paging" pageSize="5">
+        </listbox>
+
+        <listbox id="box" multiple="true" checkmark="true">
+            <listhead>
+                <listheader label="Name" />
+                <listheader label="Gender" />
+                <listheader label="Age" />
+            </listhead>
+            <listitem>
+                <listcell label="Mary" />
+                <listcell label="FEMALE" />
+                <listcell label="18" />
+            </listitem>
+            <listitem>
+                <listcell label="John" />
+                <listcell label="MALE" />
+                <listcell label="20" />
+            </listitem>
+            <listitem>
+                <listcell label="Jane" />
+                <listcell label="FEMALE" />
+                <listcell label="32" />
+            </listitem>
+            <listitem>
+                <listcell label="Henry" />
+                <listcell label="MALE" />
+                <listcell label="29" />
+            </listitem>
+            <listitem>
+                <listcell label="Mark" />
+                <listcell label="MALE" />
+                <listcell label="15" />
+            </listitem>
+            <listitem>
+                <listcell label="Jeffery" />
+                <listcell label="MALE" />
+                <listcell label="17" />
+            </listitem>
+            <listitem>
+                <listcell label="Rebecca" />
+                <listcell label="FEMALE" />
+                <listcell label="21" />
+            </listitem>
+        </listbox>
+
+    </window>
+
+</zk>

@@ -1,4 +1,4 @@
-grails --refresh-dependencies compile --non-interactive
+grails rD --non-interactive
 grails package-plugin --non-interactive
 VER=`grep 'def version' ZkGrailsPlugin.groovy | awk '{print $4}' | sed s/\"//g`
 mvn install:install-file -Dfile=grails-zk-${VER}.zip -DgroupId=org.grails.plugins -DartifactId=zk -Dversion=$VER -Dpackaging=zip

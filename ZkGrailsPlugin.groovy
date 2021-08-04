@@ -2,6 +2,7 @@ import grails.util.Environment
 import grails.util.GrailsUtil
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 import org.springframework.core.io.FileSystemResource
+
 import org.zkoss.zk.grails.ZkBuilder
 import org.zkoss.zk.grails.ZkConfigHelper
 import org.zkoss.zk.grails.artefacts.*
@@ -13,16 +14,20 @@ import org.zkoss.zk.grails.livemodels.LiveModelBuilder
 import org.zkoss.zk.grails.livemodels.SortingPagingListModel
 import org.zkoss.zk.grails.select.JQuery
 import org.zkoss.zk.grails.web.ComposerMapping
+
 import org.zkoss.zk.ui.Component
 import org.zkoss.zk.ui.Executions
 import org.zkoss.zk.ui.event.EventListener
+
 import org.zkoss.lang.Library
+
+import zk.grails.BindComposer
 
 class ZkGrailsPlugin {
     // the plugin version
-    def version = "2.4.0"
+    def version = "2.5.2"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.3 > 2.3.8"
+    def grailsVersion = "2.3 > 2.4"
 
     def loadAfter = ['core', 'controllers']
 
@@ -48,7 +53,8 @@ class ZkGrailsPlugin {
                             //
                             // support watching ZUL files
                             //
-                            "file:./grails-app/zul/**/*.zul"
+                            "file:./grails-app/zul/**/*.zul",
+                            "file:./grails-app/zul/**/*.xhtml"
                             ]
 
     // resources that are excluded from plugin packaging
@@ -144,6 +150,10 @@ and seamlessly integrates them with Grails\' infrastructures.
         // Registering 'GrailsBindComposer'
         //
         "grailsBindComposer"(GrailsBindComposer.class) { bean ->
+            bean.scope = 'prototype'
+            bean.autowire = 'byName'
+        }
+        "zk.grails.BindComposer"(BindComposer.class) { bean ->
             bean.scope = 'prototype'
             bean.autowire = 'byName'
         }
@@ -488,7 +498,7 @@ and seamlessly integrates them with Grails\' infrastructures.
             synchronized(devHolder) {
                 def fsr = (event.source as FileSystemResource)
                 def pathToKeep = fsr.path.split("grails-app")[1].replace('\\','/')
-                if(fsr.path.endsWith('.zul')) {
+                if(fsr.path.endsWith('.zul') || fsr.path.endsWith('.xhtml') ) {
                     devHolder.add(pathToKeep, fsr.file)
                 }
             }

@@ -1,0 +1,6 @@
+<zk xmlns:ca="http://www.zkoss.org/2005/zk/client/attribute">
+    <window apply="jquery.BindEachComposer">
+        <combobox id="combo" ca:data-id="combo" value="Empty"/>
+        <label id="result" ca:data-id="result">Empty</label>
+    </window>
+</zk>

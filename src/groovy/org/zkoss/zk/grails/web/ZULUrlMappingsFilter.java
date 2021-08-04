@@ -86,6 +86,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
     private static final String GSP_SUFFIX = ".gsp";
     private static final String JSP_SUFFIX = ".jsp";
     private static final String ZUL_SUFFIX = ".zul";
+    private static final String XHTML_SUFFIX = ".xhtml";
     private HandlerInterceptor[] handlerInterceptors = new HandlerInterceptor[0];
     private GrailsApplication application;
     private GrailsConfig grailsConfig;
@@ -214,7 +215,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                             }
                             GrailsClass controller = application.getArtefactForFeature(ControllerArtefactHandler.TYPE, featureId);
                             if (controller == null) {
-                                if(uri.endsWith(".zul")) {
+                                if(uri.endsWith(ZUL_SUFFIX) || uri.endsWith(XHTML_SUFFIX)) {
                                     RequestDispatcher dispatcher = request.getRequestDispatcher(uri);
                                     dispatcher.forward(request, response);
                                     dispatched = true;
@@ -258,7 +259,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Matched URI [" + uri + "] to URL mapping [" + info + "], forwarding to [" + forwardUrl + "] with response [" + response.getClass() + "]");
                         }
-                    } else if(viewName != null && viewName.endsWith(ZUL_SUFFIX)) {
+                    } else if(viewName != null && (viewName.endsWith(ZUL_SUFFIX) || viewName.endsWith(XHTML_SUFFIX)) ) {
                         RequestDispatcher dispatcher = request.getRequestDispatcher(viewName);
                         dispatcher.forward(request, response);
                     } else {

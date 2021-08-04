@@ -435,7 +435,11 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
 
     public void redirect(Map map) {
         String uri = map.get("uri").toString();
-        Executions.sendRedirect(uri);
+        if(uri.startsWith("#")) {
+            Clients.evalJavaScript("window.location.hash = '" + uri.substring(1) + "';");
+        } else {
+            Executions.sendRedirect(uri);
+        }
     }
 
     public void notify(String message) {

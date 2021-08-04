@@ -1,4 +1,4 @@
-<plugin name='zk' version='2.4.0' grailsVersion='2.3 &gt; 2.3.8'>
+<plugin name='zk' version='2.5.2' grailsVersion='2.3 &gt; 2.4'>
   <author>Chanwit Kaewkasi</author>
   <authorEmail>chanwit@gmail.com</authorEmail>
   <title>ZK plugin for Grails</title>

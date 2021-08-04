@@ -1,0 +1,5 @@
+<zk>
+    <window apply="test.NoGrailsExtendComposer">
+        <button id="ok">OK</button>
+    </window>
+</zk>

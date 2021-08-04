@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+    <system-config>
+        <web-app-factory-class>org.zkoss.zk.grails.sys.GrailsWebAppFactory</web-app-factory-class>
+    </system-config>
+    <zscript-config>
+        <language-name>GroovyGrails</language-name>
+        <interpreter-class>
+            org.zkoss.zk.grails.scripting.GroovyGrailsInterpreter
+        </interpreter-class>
+    </zscript-config>
+    <preference>
+            <name>ThreadLocal</name>
+            <value>
+                org.springframework.transaction.support.TransactionSynchronizationManager=resources,
+                synchronizations,currentTransactionName,currentTransactionReadOnly,actualTransactionActive;
+                org.springframework.transaction.interceptor.TransactionAspectSupport=transactionInfoHolder;
+                org.springframework.web.context.request.RequestContextHolder=requestAttributesHolder,inheritableRequestAttributesHolder;
+            </value>
+    </preference>
+</zk>

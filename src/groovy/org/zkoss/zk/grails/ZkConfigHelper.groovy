@@ -17,7 +17,7 @@ class ZkConfigHelper {
         if(exts) {
             return exts
         } else {
-            return ["zul"]
+            return ["zul", "xhtml"]
         }
     }
 
