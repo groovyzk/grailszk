@@ -1,0 +1,135 @@
+/*
+ * Copyright 2007-2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Gant script that creates a new ZUL page with an associated Grails composer
+ *
+ * @author Chanwit Kaewkasi
+ *
+ * @since 0.7
+ */
+
+import grails.util.GrailsNameUtils
+
+
+includeTargets << grailsScript("_GrailsInit")
+includeTargets << grailsScript("_GrailsCreateArtifacts")
+
+target ('default': "Creates a new zul page") {
+    depends(checkVersion, parseArguments)
+
+    def type = "ZUL"
+    promptForName(type: type)
+
+    def name = argsMap["params"][0]
+
+    //
+    // always strip out .zul suffix
+    //
+    if(name.endsWith('.zul')) {
+        name = (name-'.zul')
+    }
+
+    //
+    // prevent a single-character composer name
+    //
+    if(name.size() == 1) {
+        // TODO emit as error message
+        println "Name is too short"
+        return
+    }
+
+    //
+    // #75 - Replaces "/" and "\" with "."
+    //
+    name = name.replace('/', '.').replace('\\', '.')
+
+    //
+    // #110 - Removes the last Composer if user accidentally inputted
+    //
+    if(name.endsWith("Composer"))
+        name = (name - 'Composer')
+
+    def suffix = "Composer"
+    def artifactPath = "grails-app/composers"
+    createArtifact(name: name, suffix: suffix, type: suffix, path: artifactPath)
+
+    def pkg = null
+    def pos = name.lastIndexOf('.')
+    if (pos != -1) {
+        pkg = name[0..<pos]
+        name = name[(pos + 1)..-1]
+    }
+
+    // Convert the package into a file path.
+
+    def pkgPath = ''
+    def zulPkgPath = ''
+    if (pkg) {
+        pkgPath = pkg.replace('.' as char, '/' as char)
+        pkgPath += '/'
+
+        zulPkgPath = pkgPath
+    }
+    //
+    // #109 - Grails enforces use of package, we have to go along then
+    // #132 - Ignore #109 just for .zul files, to conform Grails' convention
+    //
+    else {
+        pkgPath = config.grails.project.groupId ? config.grails.project.groupId: grailsAppName
+        pkgPath = pkgPath.replace('-' as char,'/' as char).replace('.' as char,'/' as char).toLowerCase() + "/"
+    }
+
+    //
+    // prevent a single-character composer name
+    //
+    if(name.size() == 1) {
+        // TODO emit as error message
+        println "Name is too short"
+        return
+    }
+
+    def propName  = GrailsNameUtils.getPropertyNameRepresentation(name)
+    def className = GrailsNameUtils.getClassNameRepresentation(name)
+    def zulFile = "${basedir}/grails-app/zul/${zulPkgPath}${propName}.zul"
+
+    className = "${pkgPath.replace('/', '.')}${className}Composer"
+    propName  = "${pkgPath.replace('/', '.')}${propName}Composer"
+
+    ant.copy(
+        file:"${zkPluginDir}/src/templates/artifacts/template.zul",
+        tofile: zulFile,
+        overwrite: true
+    )
+    ant.replace(
+        file: zulFile,
+        token: "@artifact.name@",
+        value: className
+    )
+
+    // Convert the given name into class name and property name
+    // representations.
+    className = GrailsNameUtils.getClassNameRepresentation(name)
+    propertyName = GrailsNameUtils.getPropertyNameRepresentation(name)
+    artifactFile = "${basedir}/${artifactPath}/${pkgPath}${className}${suffix}.groovy"
+
+    ant.replace(
+        file: "${artifactFile}",
+        token: "@artifact.name.prop@",
+        value: propName
+    )
+    createUnitTest(name: name, suffix: "Composer")
+}

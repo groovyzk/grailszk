@@ -1,20 +1,13 @@
-import grails.util.Environment
-
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.plugins.GrailsPluginManager
-
+import grails.plugins.GrailsPluginManager
 import org.springframework.beans.factory.InitializingBean
+
+
+
 
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.springframework.context.MessageSourceResolvable
-import org.springframework.context.NoSuchMessageException
-
-import org.zkoss.zk.grails.ZulResponse
-import org.zkoss.util.resource.Labels
-import org.zkoss.util.Locales
-
 import org.zkoss.zk.fn.JspFns
+import org.zkoss.zk.grails.ZulResponse
 
 class ZulWrapperTagLib implements ApplicationContextAware, InitializingBean {
 
