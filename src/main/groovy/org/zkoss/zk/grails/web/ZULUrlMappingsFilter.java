@@ -377,7 +377,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                 }
 
                 // TODO: verify
-                v = WebUtils.resolveView(request, info, modelAndView.getViewName(), viewResolver);
+                v = WebUtils.resolveView(request, info.getViewName(), modelAndView.getViewName(), viewResolver);
                 v.render(modelAndView.getModel(), request, response);
 
                 // after completion

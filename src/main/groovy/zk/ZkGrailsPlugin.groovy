@@ -1,11 +1,16 @@
-package grails.plugins.zk
+package zk
 
+import grails.core.ArtefactHandler
+import grails.core.GrailsApplication
+import grails.plugins.Plugin
 import grails.util.Environment
 import grails.util.GrailsClassUtils as GCU
 import grails.util.GrailsUtil
+import org.springframework.boot.web.servlet.FilterRegistrationBean
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
+import org.springframework.boot.web.servlet.ServletRegistrationBean
+import org.springframework.core.Ordered
 import org.springframework.core.io.FileSystemResource
-
-
 import org.zkoss.lang.Library
 import org.zkoss.zk.grails.ZkBuilder
 import org.zkoss.zk.grails.ZkConfigHelper
@@ -21,7 +26,7 @@ import org.zkoss.zk.grails.web.ComposerMapping
 import org.zkoss.zk.ui.Component
 import org.zkoss.zk.ui.Executions
 
-class ZkGrailsPlugin {
+class ZkGrailsPlugin extends Plugin {
     // the plugin version
     //     def version = "2.4.0" // TODO: REMOVE
     // the version or versions of Grails the plugin is designed for
@@ -29,7 +34,7 @@ class ZkGrailsPlugin {
 
     def loadAfter = ['core', 'controllers']
 
-    def artefacts = [
+    List<ArtefactHandler> artefacts = [
         CometArtefactHandler,
         ComposerArtefactHandler,
         FacadeArtefactHandler,
@@ -99,6 +104,12 @@ and seamlessly integrates them with Grails\' infrastructures.
 
     def documentation = "http://grails.org/plugin/zk"
 
+//    GrailsApplication application
+//
+//    {
+//        application = grailsApplication
+//    }
+
     private String getScope(clazz, String defaultScope) {
         String beanScope = GCU.getStaticPropertyValue(clazz, "scope") as String
         if(beanScope == null) {
@@ -107,126 +118,179 @@ and seamlessly integrates them with Grails\' infrastructures.
         return beanScope
     }
 
-    def doWithSpring = {
+    Closure doWithSpring() { { ->
 
-        Library.setProperty("org.zkoss.web.servlet.http.URLEncoder", "org.zkoss.zk.grails.web.URLEncoder")
+            Library.setProperty("org.zkoss.web.servlet.http.URLEncoder", "org.zkoss.zk.grails.web.URLEncoder")
 
-        if(Environment.current == Environment.DEVELOPMENT) {
-            devHolder(org.zkoss.zk.grails.dev.DevHolder) { bean ->
+            if (Environment.current == Environment.DEVELOPMENT) {
+                devHolder(org.zkoss.zk.grails.dev.DevHolder) { bean ->
+                    bean.scope = "singleton"
+                }
+            }
+
+            //
+            // Registering new scopes
+            //
+            desktopScope(org.zkoss.zk.grails.scope.DesktopScope)
+            pageScope(org.zkoss.zk.grails.scope.PageScope)
+            zkgrailsScopesConfigurer(org.springframework.beans.factory.config.CustomScopeConfigurer) {
+                scopes = ['desktop': ref('desktopScope'),
+                          'page'   : ref('pageScope')]
+            }
+
+            // Registering desktopCounter
+            desktopCounter(org.zkoss.zk.grails.DesktopCounter) { bean ->
                 bean.scope = "singleton"
-            }
-        }
-
-        //
-        // Registering new scopes
-        //
-        desktopScope(org.zkoss.zk.grails.scope.DesktopScope)
-        pageScope   (org.zkoss.zk.grails.scope.PageScope   )
-        zkgrailsScopesConfigurer(org.springframework.beans.factory.config.CustomScopeConfigurer) {
-            scopes = ['desktop': ref('desktopScope'),
-                      'page'   : ref('pageScope')   ]
-        }
-
-        // Registering desktopCounter
-        desktopCounter(org.zkoss.zk.grails.DesktopCounter) { bean ->
-            bean.scope = "singleton"
-            bean.autowire = "byName"
-        }
-
-        //
-        // Registering ViewModel Beans to support MVVM
-        //
-        application.viewModelClasses.each { viewModelClass ->
-            "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
-                bean.scope = this.getScope(viewModelClass.clazz, "prototype")
                 bean.autowire = "byName"
             }
-        }
 
-        //
-        // Registering 'GrailsBindComposer'
-        //
-        "grailsBindComposer"(GrailsBindComposer.class) { bean ->
-            bean.scope = 'prototype'
-            bean.autowire = 'byName'
-        }
-
-        //
-        // Registering Composer Beans
-        //
-        application.composerClasses.each { composerClass ->
-            def composerBeanName = composerClass.propertyName
-            if(composerClass.packageName) {
-                composerBeanName = "${composerClass.packageName}.${composerBeanName}"
-            }
-            def clazz = composerClass.clazz
-            if(clazz.superclass == Script.class) {
-                "${composerBeanName}"(JQueryComposer.class) { bean ->
-                    bean.scope = "prototype"
-                    bean.autowire = "byName"
-                    innerComposer = clazz
-                }
-            } else {
-                "${composerBeanName}"(composerClass.clazz) { bean ->
-                    bean.scope = this.getScope(composerClass.clazz, "prototype")
+            //
+            // Registering ViewModel Beans to support MVVM
+            //
+            this.grailsApplication.viewModelClasses.each { viewModelClass ->
+                "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
+                    bean.scope = this.getScope(viewModelClass.clazz, "prototype")
                     bean.autowire = "byName"
                 }
             }
-        }
 
-        //
-        // Registering Facade Beans
-        //
-        application.facadeClasses.each { facadeClass ->
-            "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
-                bean.scope = this.getScope(facadeClass.clazz, "session")
-                bean.autowire = "byName"
+            //
+            // Registering 'GrailsBindComposer'
+            //
+            grailsBindComposer(GrailsBindComposer.class) { bean ->
+                bean.scope = 'prototype'
+                bean.autowire = 'byName'
             }
-        }
 
-        //
-        // Registering Comet classes
-        //
-        application.cometClasses.each { cometClass ->
-            "${cometClass.propertyName}"(cometClass.clazz) { bean ->
-                bean.scope = this.getScope(cometClass.clazz, "prototype")
-                bean.autowire = "byName"
-            }
-        }
-
-        //
-        // Registering UI-Model classes
-        //
-        application.liveModelClasses.each { modelClass ->
-            def cfg = GCU.getStaticPropertyValue(modelClass.clazz, "config")
-            if(cfg) {
-                def lmb = new LiveModelBuilder()
-                cfg.delegate = lmb
-                cfg.resolveStrategy = Closure.DELEGATE_ONLY
-                cfg.call()
-                if (lmb.map['model'] == 'page') {
-                    "${modelClass.propertyName}"(SortingPagingListModel.class) { bean ->
+            //
+            // Registering Composer Beans
+            //
+            this.grailsApplication.composerClasses.each { composerClass ->
+                def composerBeanName = composerClass.propertyName
+                if (composerClass.packageName) {
+                    composerBeanName = "${composerClass.packageName}.${composerBeanName}"
+                }
+                def clazz = composerClass.clazz
+                if (clazz.superclass == Script.class) {
+                    "${composerBeanName}"(JQueryComposer.class) { bean ->
                         bean.scope = "prototype"
                         bean.autowire = "byName"
-                        bean.initMethod = "init"
-                        map = lmb.map.clone()
+                        innerComposer = clazz
+                    }
+                } else {
+                    "${composerBeanName}"(composerClass.clazz) { bean ->
+                        bean.scope = this.getScope(composerClass.clazz, "prototype")
+                        bean.autowire = "byName"
                     }
                 }
             }
-        }
 
-        zkgrailsComposerMapping(ComposerMapping.class) { bean ->
-            bean.scope = "singleton"
-            bean.autowire = "byName"
-        }
+            //
+            // Registering Facade Beans
+            //
+            this.grailsApplication.facadeClasses.each { facadeClass ->
+                "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
+                    bean.scope = this.getScope(facadeClass.clazz, "session")
+                    bean.autowire = "byName"
+                }
+            }
 
-        zkgrailsScaffoldingTemplate(org.zkoss.zk.grails.scaffolding.DefaultScaffoldingTemplate) { bean ->
-            bean.scope = "prototype"
-            bean.autowire = "byName"
+            //
+            // Registering Comet classes
+            //
+            this.grailsApplication.cometClasses.each { cometClass ->
+                "${cometClass.propertyName}"(cometClass.clazz) { bean ->
+                    bean.scope = this.getScope(cometClass.clazz, "prototype")
+                    bean.autowire = "byName"
+                }
+            }
+
+            //
+            // Registering UI-Model classes
+            //
+            this.grailsApplication.liveModelClasses.each { modelClass ->
+                def cfg = GCU.getStaticPropertyValue(modelClass.clazz, "config")
+                if (cfg) {
+                    def lmb = new LiveModelBuilder()
+                    cfg.delegate = lmb
+                    cfg.resolveStrategy = Closure.DELEGATE_ONLY
+                    cfg.call()
+                    if (lmb.map['model'] == 'page') {
+                        "${modelClass.propertyName}"(SortingPagingListModel.class) { bean ->
+                            bean.scope = "prototype"
+                            bean.autowire = "byName"
+                            bean.initMethod = "init"
+                            map = lmb.map.clone()
+                        }
+                    }
+                }
+            }
+
+            zkgrailsComposerMapping(ComposerMapping.class) { bean ->
+                bean.scope = "singleton"
+                bean.autowire = "byName"
+            }
+
+            zkgrailsScaffoldingTemplate(org.zkoss.zk.grails.scaffolding.DefaultScaffoldingTemplate) { bean ->
+                bean.scope = "prototype"
+                bean.autowire = "byName"
+            }
+
+            // web.xml
+            // Filter
+            //
+            // e.g. ["zul"]
+            //
+            def supportExts = ZkConfigHelper.supportExtensions
+            boolean supportsAsync = this.grailsApplication.metadata.getServletVersion() >= "3.0"
+
+            //
+            // e.g. ["*.zul", "/zkau/*"]
+            //
+            def filterUrls = supportExts.collect{ "*." + it } + ["/zkau/*"]
+
+            GOSIVFilter(FilterRegistrationBean) {
+                filter = bean(org.zkoss.zk.grails.web.ZKGrailsOpenSessionInViewFilter)
+                urlPatterns = filterUrls
+            }
+
+            pageFilter(FilterRegistrationBean) {
+                name = "sitemesh"
+                filter = bean(org.zkoss.zk.grails.web.ZKGrailsPageFilter)
+                urlPatterns = ["/*"]
+                order = Ordered.HIGHEST_PRECEDENCE
+                asyncSuported = supportsAsync
+            }
+
+            urlMappingFilter(FilterRegistrationBean) {
+                name = "urlMapping"
+                filter = bean(org.zkoss.zk.grails.web.ZULUrlMappingsFilter)
+                urlPatterns = ["/*"]
+                order = Ordered.HIGHEST_PRECEDENCE
+                asyncSuported = supportsAsync
+            }
+
+            // Listener
+            ZkSessionCleaner(ServletListenerRegistrationBean) {
+                listener = bean(org.zkoss.zk.ui.http.HttpSessionListener)
+            }
+
+            // Servlet
+            def urls = supportExts.collect { "*.$it" } + ["*.dsp", "*.zhtml", "*.svg", "*.xml2html"]
+
+            auEngine(ServletRegistrationBean, new org.zkoss.zk.au.http.DHtmlUpdateServlet(), "/zkau/*")
+
+            zkLoader(ServletRegistrationBean, new org.zkoss.zk.ui.http.DHtmlLayoutServlet(), urls as String[]) {
+                initParameters = [
+                    "update-uri": "/zkau",
+                    "compress": "false"
+                ]
+                loadOnStartup = 0
+            }
         }
     }
 
-    def doWithApplicationContext = { applicationContext ->
+    def doWithApplicationContext = { //applicationContext ->
     }
 
     def doWithWebDescriptor = { xml ->
@@ -353,7 +417,7 @@ and seamlessly integrates them with Grails\' infrastructures.
 
     def doWithDynamicMethods = { ctx ->
 
-        application.composerClasses.each { composerClass ->
+        this.grailsApplication.composerClasses.each { composerClass ->
             Class clazz = composerClass.clazz
             if(clazz.superclass == Script.class) {
                 clazz.metaClass.methodMissing = { String name, args ->

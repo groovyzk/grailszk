@@ -71,7 +71,6 @@ class SortingPagingListModel extends AbstractListModel {
         return false
     }
 
-    @Override
     void sort(Comparator c, boolean ascending) {
         if (c instanceof FieldComparator) {
             cache = null

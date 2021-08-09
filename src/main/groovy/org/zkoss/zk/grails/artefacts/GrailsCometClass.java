@@ -1,5 +1,7 @@
 package org.zkoss.zk.grails.artefacts;
 
-public interface GrailsCometClass {
+import grails.core.GrailsClass;
+
+public interface GrailsCometClass extends GrailsClass {
 
 }

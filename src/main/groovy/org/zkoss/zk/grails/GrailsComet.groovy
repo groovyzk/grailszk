@@ -17,9 +17,9 @@ class GrailsComet {
 
         def trigger = GrailsClassUtils.getPropertyOrStaticPropertyOrFieldValue(this, "trigger")
 
-        final Long startDelay
-        final Long delay
-        final Long every
+        Long startDelay
+        Long delay
+        Long every
 
         if(trigger instanceof Number) {
             startDelay = 0L

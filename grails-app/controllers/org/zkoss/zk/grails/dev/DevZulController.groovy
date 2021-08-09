@@ -2,7 +2,7 @@ package org.zkoss.zk.grails.dev
 
 class DevZulController {
 
-    def devHolder
+    DevHolder devHolder
 
     //
     // index?r=/index.zul
