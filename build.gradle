@@ -60,7 +60,8 @@ dependencies {
     compile "org.zkoss.common:zweb:$zkVersion"
     compile "org.zkoss.common:zel:$zkVersion"
     compile "org.zkoss.common:zcommon:$zkVersion"
-    
+
+    compile files("lib/zkgrails2-common.jar")
 //    compile 'org.apache.logging.log4j:log4j:2.14.1'
 
     // -----------------------------------------------
