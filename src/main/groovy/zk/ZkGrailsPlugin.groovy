@@ -460,7 +460,8 @@ and seamlessly integrates them with Grails' infrastructures.
             if(composerClass.packageName) {
                 composerBeanName = "${composerClass.packageName}.${composerBeanName}"
             }
-            def beanDefinitions = beans {
+
+            beans {
                 def clazz = composerClass.clazz
                 if(clazz.superclass == Script.class) {
                     "${composerBeanName}"(JQueryComposer.class) { bean ->
@@ -475,8 +476,6 @@ and seamlessly integrates them with Grails' infrastructures.
                     }
                 }
             }
-            // TODO: Fix reloading
-            beanDefinitions.registerBeans(context)
 
             //
             // TODO: do refreshing the ZUL file
@@ -489,34 +488,28 @@ and seamlessly integrates them with Grails' infrastructures.
         //
         else if(application.isArtefactOfType(ViewModelArtefactHandler.TYPE, event.source)) {
             def viewModelClass = application.addArtefact(ViewModelArtefactHandler.TYPE, event.source)
-            def beanDefinitions = beans {
+            beans {
                 "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
                     bean.scope = getScope(viewModelClass.clazz, "prototype")
                     bean.autowire = 'byName'
                 }
             }
-            beanDefinitions.registerBeans(context)
-
         } else if (application.isArtefactOfType(FacadeArtefactHandler.TYPE, event.source)) {
             def facadeClass = application.addArtefact(FacadeArtefactHandler.TYPE, event.source)
-            def beanDefinitions = beans {
+            beans {
                 "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
                     bean.scope = getScope(facadeClass.clazz, "session")
                     bean.autowire = 'byName'
                 }
             }
-            beanDefinitions.registerBeans(context)
-
         } else if (application.isArtefactOfType(CometArtefactHandler.TYPE, event.source)) {
             def cometClass = application.addArtefact(CometArtefactHandler.TYPE, event.source)
-            def beanDefinitions = beans {
+            beans {
                 "${cometClass.propertyName}"(cometClass.clazz) { bean ->
                     bean.scope = getScope(cometClass.clazz, "prototype")
                     bean.autowire = 'byName'
                 }
             }
-            beanDefinitions.registerBeans(context)
-
         } else if (application.isArtefactOfType(LiveModelArtefactHandler.TYPE, event.source)) {
             def modelClass = application.addArtefact(LiveModelArtefactHandler.TYPE, event.source)
             def cfg = GCU.getStaticPropertyValue(modelClass.clazz, "config")
@@ -526,7 +519,7 @@ and seamlessly integrates them with Grails' infrastructures.
                 cfg.resolveStrategy = Closure.DELEGATE_ONLY
                 cfg.call()
                 if (lmb.map['model'] == 'page') {
-                    def beanDefinitions = beans {
+                    beans {
                         "${modelClass.propertyName}"(SortingPagingListModel.class) { bean ->
                             bean.scope = 'prototype'
                             bean.autowire = 'byName'
@@ -534,7 +527,6 @@ and seamlessly integrates them with Grails' infrastructures.
                             map = lmb.map.clone()
                         }
                     }
-                    beanDefinitions.registerBeans(context)
                 }
             }
         }
