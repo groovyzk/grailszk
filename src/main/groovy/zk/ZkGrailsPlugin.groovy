@@ -1,8 +1,10 @@
 package zk
 
+import grails.core.ArtefactHandler
 import grails.plugins.Plugin
 import grails.util.Environment
 import grails.util.GrailsClassUtils as GCU
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.config.CustomScopeConfigurer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
@@ -45,7 +47,7 @@ class ZkGrailsPlugin extends Plugin {
 
     def loadAfter = ["core", "controllers"]
 
-    def artefacts = [
+    List<ArtefactHandler> artefacts = [
         CometArtefactHandler,
         ComposerArtefactHandler,
         FacadeArtefactHandler,
@@ -123,7 +125,8 @@ and seamlessly integrates them with Grails' infrastructures.
     // Online location of the plugin's browseable source code.
     def scm = [ url: "https://github.com/maiconandsilva/zk-grails/" ]
 
-    protected static String getScope(clazz, String defaultScope) {
+    @CompileStatic
+    protected static String getScope(Class<?> clazz, String defaultScope) {
         return GCU.getStaticPropertyValue(clazz, "scope") ?: defaultScope
     }
 
@@ -132,7 +135,7 @@ and seamlessly integrates them with Grails' infrastructures.
 
         Library.setProperty("org.zkoss.web.servlet.http.URLEncoder", "org.zkoss.zk.grails.web.URLEncoder")
 
-        if (Environment.current == Environment.DEVELOPMENT) {
+        if (Environment.developmentMode) {
             devHolder(DevHolder) { bean ->
                 bean.scope = "singleton"
             }
@@ -144,10 +147,7 @@ and seamlessly integrates them with Grails' infrastructures.
         desktopScope(DesktopScope)
         pageScope(PageScope)
         zkgrailsScopesConfigurer(CustomScopeConfigurer) {
-            scopes = [
-                'desktop': ref('desktopScope'),
-                'page'   : ref('pageScope')
-            ]
+            scopes = [ 'desktop': ref('desktopScope'), 'page': ref('pageScope') ]
         }
 
         // Registering desktopCounter
