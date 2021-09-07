@@ -9,5 +9,7 @@ Below version 2.0 the code is forked from https://github.com/zkgrails/zkgrails.
 
 Install gradle wrapper version 5.6.4
 
-Download [`zkgrails2-common.jar`](https://drive.google.com/file/d/14ltwii31dzjlnCC1SpBXaRVbxk65-Kl9/view?usp=sharing)
-and place it in the lib folder which must be inside the plugin root directory.  
+#### Versions below 2.5.2
+
+Download ZK jars [`zkgrails2-common.jar`](https://github.com/zk-groovy/zkgrails-common.jar/blob/main/zkgrails2-common.jar)
+and place them in the lib folder which must be inside the plugin root directory.  
