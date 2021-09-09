@@ -184,7 +184,7 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache
 
-gradle/
+gradle/wrapper
 gradle-wrapper.jar
 gradlew
 gradlew.bat
@@ -205,14 +205,5 @@ gradle/wrapper/gradle-wrapper.properties
 
 Thumbs.db
 .DS_Store
-.gradle
-build/
-out/
-.idea
-*.iml
-*.ipr
-*.iws
-.project
 .settings
-.classpath
 lib/
