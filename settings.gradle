@@ -1,0 +1,6 @@
+rootProject.name = "zk-grails"
+
+include(
+    "zk-grails",
+    "zk-grails-extension",
+)

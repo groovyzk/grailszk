@@ -3,10 +3,10 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=gradle,grails,groovy,java,intellij+all
 
 ### Grails ###
-# .gitignore for Grails 1.2 and 1.3
+# _.gitignore for Grails 1.2 and 1.3
 # Although this should work for most versions of grails, it is
 # suggested that you use the "grails integrate-with --git" command
-# to generate your .gitignore file.
+# to generate your _.gitignore file.
 
 # web application files
 /web-app/WEB-INF/classes
@@ -38,10 +38,10 @@
 /target
 
 ### Groovy ###
-# .gitignore created from Groovy contributors in https://github.com/apache/groovy/blob/master/.gitignore
+# _.gitignore created from Groovy contributors in https://github.com/apache/groovy/blob/master/.gitignore
 
 user.gradle
-.gradle/
+../.gradle/
 target/
 build/
 out/
