@@ -14,7 +14,6 @@ group "zk"
 apply plugin:"eclipse"
 apply plugin:"idea"
 apply plugin:"org.grails.grails-plugin"
-//apply plugin:"org.grails.grails-plugin-publish"
 apply plugin:"asset-pipeline"
 apply plugin:"org.grails.grails-gsp"
 
@@ -31,6 +30,8 @@ configurations {
 
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    compile project(":zk-grails-extension")
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.grails:grails-core"
@@ -48,10 +49,6 @@ dependencies {
     compile "org.grails.plugins:async"
     compile "org.grails.plugins:scaffolding"
     compile "org.grails.plugins:gsp"
-
-    // -----------------------------------------------
-
-    String zkVersion = "7.0.1"
     compile "org.zkoss.zk:zk:$zkVersion"
     compile "org.zkoss.zk:zul:$zkVersion"
     compile "org.zkoss.zk:zhtml:$zkVersion"
@@ -60,16 +57,12 @@ dependencies {
     compile "org.zkoss.common:zweb:$zkVersion"
     compile "org.zkoss.common:zel:$zkVersion"
     compile "org.zkoss.common:zcommon:$zkVersion"
-
-    compile files("lib/zkgrails2-common.jar")
-//    compile 'org.apache.logging.log4j:log4j:2.14.1'
-
-    // -----------------------------------------------
-
     compileOnly "io.micronaut:micronaut-inject-groovy"
+
     console "org.grails:grails-console"
     profile "org.grails.profiles:web-plugin"
     runtime "com.bertramlabs.plugins:asset-pipeline-grails:3.0.10"
+
     testCompile "io.micronaut:micronaut-inject-groovy"
     testCompile "org.grails:grails-gorm-testing-support"
     testCompile "org.mockito:mockito-core"
@@ -93,22 +86,10 @@ tasks.withType(GroovyCompile) {
         forkOptions.jvmArgs = ['-Xmx1024m']
     }
 }
+
 // enable if you wish to package this plugin as a standalone application
 bootJar.enabled = false
-//grailsPublish {
-//    // TODO: Provide values here
-//    user = 'user'
-//    key = 'key'
-//    githubSlug = 'foo/bar'
-//    license {
-//        name = 'Apache-2.0'
-//    }
-//    title = "My Plugin"
-//    desc = "Full plugin description"
-//    developers = [johndoe:"John Doe"]
-//}
 
-
-//assets {
-//    packagePlugin = true
-//}
+assets {
+    packagePlugin = true
+}
