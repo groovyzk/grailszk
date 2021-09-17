@@ -1,10 +1,12 @@
-@artifact.package@import org.zkoss.zk.grails.*
+package ${packageName}
 
-class @artifact.name@ {
+import org.zkoss.zk.grails.*
 
-    @artifact.domain@ selected
+class ${className} {
 
-    List<@artifact.domain@> get@artifact.domain.plural@() {
-        @artifact.domain@.list()
+    ${domainName} selected
+
+    List<${domainName}> get${domainName}() {
+        ${domainName}.list()
     }
 }

@@ -1,12 +1,12 @@
-@artifact.package@import org.zkoss.zk.grails.*
+package ${packageName}
 
-class @artifact.name@  {
+import org.zkoss.zk.grails.*
 
+class ${className} {
     static config = {
         model    "page" // or "list"
-        domain   @artifact.domain@.class
+        domain   ${domainName}
         pageSize 20
         sorted   true
     }
-
 }
