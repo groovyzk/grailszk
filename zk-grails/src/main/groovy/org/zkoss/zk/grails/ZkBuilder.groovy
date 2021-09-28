@@ -54,7 +54,7 @@ class ZkBuilder {
         // then go via Page (zk default components)
         //
         if(!comdef)
-            comdef = page.getComponentDefinition(tag, true)
+            comdef = page?.getComponentDefinition(tag, true)
         if(!comdef)
             return false
 
