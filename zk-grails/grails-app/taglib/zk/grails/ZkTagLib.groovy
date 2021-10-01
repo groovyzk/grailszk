@@ -1,3 +1,5 @@
+package zk.grails
+
 import grails.core.GrailsApplication
 import grails.plugins.GrailsPluginManager
 import grails.util.Environment

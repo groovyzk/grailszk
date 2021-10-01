@@ -1,3 +1,5 @@
+package zk.grails
+
 import grails.plugins.GrailsPluginManager
 import org.springframework.beans.factory.InitializingBean
 
