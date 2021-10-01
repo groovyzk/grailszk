@@ -268,9 +268,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                     String link = grailsLinkGenerator.resource(new HashMap(){{
                         put("dir","ext/js");
                         put("file","z-it-live.js");
-                        put("plugin", "zk");
                     }});
-                    link = link.replaceAll("/plugins", "/static/plugins");
                     buffer.getWriter().write(
                         pageContent.replace("</head>",
                             "<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n</head>")
@@ -296,9 +294,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                         String link = grailsLinkGenerator.resource(new HashMap(){{
                             put("dir","ext/js");
                             put("file","z-it-live.js");
-                            put("plugin", "zk");
                         }});
-                        link = link.replaceAll("/plugins", "/static/plugins");
                         pageContent = pageContent.replace("</head>", "<script type=\"text/javascript\" src=\"" + link + "\" charset=\"UTF-8\"></script>\n</head>");
                         head = head + "\n<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n";
                         CharArray newBody = new CharArray(body.length());
