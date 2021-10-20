@@ -5,13 +5,9 @@ import grails.util.Environment
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.beans.factory.InitializingBean
-
-
-
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.io.Resource
-
 import javax.servlet.ServletContext
 import java.util.concurrent.ConcurrentHashMap
 
@@ -46,10 +42,10 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
             String url = r.getURL().toString()
             String zulFilePath = url.substring(url.lastIndexOf("grails-app/zul") + 14)
             String lines = r.getInputStream().getText()
-            def matcher = lines =~ /apply=\"([\w\.]+)\"/
+            def matcher = lines =~ /apply="([\w.]+)"/
             if(matcher.find()) {
                 matcher.each { group ->
-                    def composerName = group[1]
+                    String composerName = group[1]
                     LOG.info("Found ${composerName} : ${r.getURL()}")
                     map[composerName.toLowerCase()] = zulFilePath
                 }
@@ -68,7 +64,7 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
         //
         //
         //
-        def key = grailsApplication.composerClasses.find { it.logicalPropertyName == composerPath }?.fullName
+        String key = grailsApplication.composerClasses.find { it.logicalPropertyName == composerPath }?.fullName
         if(key)
             return map[key.toLowerCase()]
         else
@@ -81,9 +77,7 @@ class ComposerMapping implements ApplicationContextAware, InitializingBean {
     void afterPropertiesSet() throws Exception {
         try {
             refresh()
-        } catch(Throwable e) {
-            // ignore
-        }
+        } catch(Throwable ignored) {}
     }
 
 }

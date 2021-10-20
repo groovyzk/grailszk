@@ -5,6 +5,7 @@ import grails.plugins.Plugin
 import grails.util.Environment
 import grails.util.GrailsClassUtils as GCU
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.CustomScopeConfigurer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
@@ -39,6 +40,7 @@ import org.zkoss.zk.ui.http.HttpSessionListener
 
 import javax.servlet.DispatcherType
 
+@Slf4j
 class ZkGrailsPlugin extends Plugin {
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "4.0.11 > *"
