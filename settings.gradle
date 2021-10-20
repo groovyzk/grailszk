@@ -1,4 +1,4 @@
-rootProject.name = "zk-grails"
+rootProject.name = "zk-grails-core"
 
 include(
     "zk-grails",
