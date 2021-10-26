@@ -6,13 +6,16 @@ description("Copy all templates to be used for resource creation. All create-* c
     flag name: "force", description: "Whether to overwrite existing files"
 }
 
+boolean force = flag("force")
+
 templates("artifacts/**/*").each { Resource r ->
     String path = r.URL.toString().replaceAll(/^.*?META-INF/, "src/main")
-    if (path.endsWith("/")) {
-        mkdir(path)
-    } else {
+    if (!path.endsWith("/")) {
         File to = new File(path)
-        SpringIOUtils.copy(r, to)
-        println("Copied ${r.filename} to location ${to.canonicalPath}")
+        if (!to.exists() || force) {
+            to.getParentFile().mkdirs()
+            SpringIOUtils.copy(r, to)
+            println("Copied ${r.filename} to ${to.canonicalPath}")
+        }
     }
 }
