@@ -5,7 +5,6 @@ import com.opensymphony.sitemesh.Content;
 import com.opensymphony.sitemesh.webapp.SiteMeshWebAppContext;
 import com.opensymphony.sitemesh.webapp.decorator.BaseWebAppDecorator;
 import grails.web.mapping.LinkGenerator;
-import org.grails.buffer.StreamCharBuffer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -37,7 +36,7 @@ public class LiveNoDecorator extends BaseWebAppDecorator implements Decorator {
         String original = strWriter.toString();
         String contextPath = request.getContextPath();
         if(original.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
-            String link = grailsLinkGenerator.resource(new HashMap(){{
+            String link = grailsLinkGenerator.resource(new HashMap<String, String>(){{
                 put("dir","ext/js");
                 put("file","z-it-live.js");
             }});

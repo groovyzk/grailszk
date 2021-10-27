@@ -28,6 +28,7 @@ import com.opensymphony.sitemesh.compatability.PageParser2ContentProcessor;
 import com.opensymphony.sitemesh.webapp.ContainerTweaks;
 import com.opensymphony.sitemesh.webapp.SiteMeshFilter;
 import com.opensymphony.sitemesh.webapp.SiteMeshWebAppContext;
+import com.opensymphony.sitemesh.webapp.decorator.NoDecorator;
 import grails.core.GrailsApplication;
 import grails.persistence.support.NullPersistentContextInterceptor;
 import grails.persistence.support.PersistenceContextInterceptor;
@@ -54,7 +55,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Extends the default page filter to overide the apply decorator behaviour
+ * Extends the default page filter to override the apply decorator behaviour
  * if the page is a GSP
  *
  * @author Graeme Rocher
@@ -66,7 +67,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
     private static final String HTML_EXT = ".html";
     private static final String UTF_8_ENCODING = "UTF-8";
     private static final String CONFIG_OPTION_GSP_ENCODING = "grails.views.gsp.encoding";
-    public static final String GSP_SITEMESH_PAGE = GrailsLayoutView.class.getName() + ".GSP_SITEMESH_PAGE";
+    public static final String GSP_SITEMESH_PAGE = GrailsLayoutView.GSP_SITEMESH_PAGE;
 
     private FilterConfig filterConfig;
     private ContainerTweaks containerTweaks;
@@ -124,9 +125,9 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
 
     private boolean isZUL(HttpServletRequest request) {
         String path = extractRequestPath(request);
-        if(path.indexOf("?")!=-1) {
+        if(path.contains("?")) {
             path = path.split("\\?")[0];
-        } else if (path.indexOf("#")!=-1){
+        } else if (path.contains("#")){
             path = path.split("#")[0];
         }
         ArrayList<String> arrExtensions = ZkConfigHelper.getSupportExtensions();
@@ -138,21 +139,21 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
 
     private boolean isZK(HttpServletRequest request) {
         String path = extractRequestPath(request);
-        if(path.indexOf("/zkau") != -1) return true;
-        if(path.indexOf("/zkcomet") != -1) return true;
+        if(path.contains("/zkau")) return true;
+        if(path.contains("/zkcomet")) return true;
 
         //
         // Extended checking in support extension configuration
         // By default, ["zul"] will be checked here
         //
         ArrayList<String> arrExtensions = ZkConfigHelper.getSupportExtensions();
-        for(String sExt : arrExtensions) {
+        for (String sExt : arrExtensions) {
             if(path.lastIndexOf("." + sExt) != -1) return true;
         }
 
         final String[] ext = new String[]{".dsp",".zhtml", ".svg", ".xml2html"};
-        for(int i=0;i < ext.length; i++) {
-            if(path.lastIndexOf(ext[i]) != -1) return true;
+        for (String s : ext) {
+            if (path.lastIndexOf(s) != -1) return true;
         }
 
         return false;
@@ -265,7 +266,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                 if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
                     StreamCharBuffer buffer = new StreamCharBuffer();
                     LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
-                    String link = grailsLinkGenerator.resource(new HashMap(){{
+                    String link = grailsLinkGenerator.resource(new HashMap<String, String>(){{
                         put("dir","ext/js");
                         put("file","z-it-live.js");
                     }});
@@ -291,7 +292,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                     // src="/zello/zkau/
                     if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
                         LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
-                        String link = grailsLinkGenerator.resource(new HashMap(){{
+                        String link = grailsLinkGenerator.resource(new HashMap<String, String>(){{
                             put("dir","ext/js");
                             put("file","z-it-live.js");
                         }});
@@ -304,9 +305,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                         GrailsTokenizedHTMLPage newHtmlPage = new GrailsTokenizedHTMLPage(pageContent.toCharArray(), newBody, newHead);
                         return new HTMLPage2Content(newHtmlPage);
                     }
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (NoSuchFieldException | IllegalAccessException e) {
                     e.printStackTrace();
                 }
             }
@@ -340,8 +339,8 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         Object oldGspSiteMeshPage=request.getAttribute(GSP_SITEMESH_PAGE);
         try {
             request.setAttribute(GSP_SITEMESH_PAGE, new GSPSitemeshPage());
-            GrailsContentBufferingResponse contentBufferingResponse = new GrailsContentBufferingResponse(
-                    response, contentProcessor, webAppContext);
+            GrailsContentBufferingResponse contentBufferingResponse =
+                    new GrailsContentBufferingResponse(response, contentProcessor, webAppContext);
 
             setDefaultConfiguredEncoding(request, contentBufferingResponse);
             chain.doFilter(request, contentBufferingResponse);

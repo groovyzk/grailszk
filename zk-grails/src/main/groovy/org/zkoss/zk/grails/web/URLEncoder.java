@@ -39,8 +39,8 @@ public class URLEncoder implements org.zkoss.web.servlet.http.Encodes.URLEncoder
         return encodeURL0(ctx, request, response, url);
     }
 
-    private static final String encodeURL0(ServletContext ctx,
-                                           ServletRequest request, ServletResponse response, String uri)
+    private static String encodeURL0(ServletContext ctx,
+                                     ServletRequest request, ServletResponse response, String uri)
             throws Exception {
         if (uri == null || uri.length() == 0)
             return uri; //keep as it is
@@ -123,17 +123,17 @@ public class URLEncoder implements org.zkoss.web.servlet.http.Encodes.URLEncoder
         return uri;
     }
 
-    public static final String encodeURI(String s)
+    public static String encodeURI(String s)
             throws UnsupportedEncodingException {
         return encodeURI0(s, URI_UNSAFE);
     }
 
-    public static final String encodeURIComponent(String s)
+    public static String encodeURIComponent(String s)
             throws UnsupportedEncodingException {
         return encodeURI0(s, URI_COMP_UNSAFE);
     }
 
-    private static final String encodeURI0(String s, char[] unsafes)
+    private static String encodeURI0(String s, char[] unsafes)
             throws UnsupportedEncodingException {
         if (s == null)
             return null;

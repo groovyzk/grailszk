@@ -74,6 +74,7 @@ import java.util.Map;
  *
  * @author Graeme Rocher
  * @author Chanwit Kaewkasi
+ * @author Maicon Mauricio
  * @since  2.0.0.M2
  */
 public class ZULUrlMappingsFilter extends OncePerRequestFilter {
