@@ -223,12 +223,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             }
             // applyLive(request, content);
             detectContentTypeFromPage(content, response);
-            com.opensymphony.module.sitemesh.Decorator decorator = decoratorMapper.getDecorator(request, GSPSitemeshPage.content2htmlPage(content));
-            if(decorator instanceof Decorator) {
-                ((Decorator)decorator).render(content, webAppContext);
-            } else {
-                new OldDecorator2NewDecorator(decorator).render(content, webAppContext);
-            }
+            new GrailsNoDecorator().render(content, webAppContext);
             dispatched = true;
         }
         catch (IllegalStateException e) {
