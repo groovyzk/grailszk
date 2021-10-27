@@ -73,8 +73,9 @@ class ZkGrailsPlugin extends Plugin {
 
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-        "grails-app/conf/Config.groovy",
-        "grails-app/conf/TestUrlMappings.groovy",
+        "grails-app/conf/application.groovy",
+        "grails-app/conf/application.yml",
+        "grails-app/controllers/zk/TestUrlMappings.groovy",
         "grails-app/domain/zk/**",
         "grails-app/services/zk/**",
         "grails-app/comets/**",
@@ -84,27 +85,27 @@ class ZkGrailsPlugin extends Plugin {
         "grails-app/livemodels/**",
         "grails-app/views/**",
         "grails-app/viewmodels/**",
-        "grails-app/taglib/MyTagLib.groovy",
+        "grails-app/taglib/zk/grails/MyTagLib.groovy",
         "grails-app/i18n/*.properties",
         "grails-app/zul/**",
-        "web-app/css/**",
-        "web-app/issue*",
-        "web-app/META-INF/**",
-        "web-app/test/**",
-        "web-app/WEB-INF/**",
-        "web-app/ext/images/skin/**",
-        "web-app/ext/images/*.ico",
-        // "web-app/ext/images/grails_*",
-        "web-app/ext/images/leftnav_*",
-        "web-app/ext/images/sp*",
-        "web-app/**/*.zul",
-        "test/**",
+        "src/main/webapp/css/**",
+        "src/main/webapp/issue*",
+        "src/main/webapp/META-INF/**",
+        "src/main/webapp/test/**",
+        "src/main/webapp/WEB-INF/**",
+        "src/main/webapp/ext/images/skin/**",
+        "src/main/webapp/ext/images/*.ico",
+        "src/main/webapp/ext/images/grails_*",
+        "src/main/webapp/ext/images/leftnav_*",
+        "src/main/webapp/ext/images/sp*",
+        "src/main/webapp/**/*.zul",
+        "src/main/test/**",
         "src/docs/**",
-        "src/java/org/zkoss/zk/grails/test/**"
+        "src/groovy/org/zkoss/zk/grails/test/**"
     ]
 
-    def author = "Chanwit Kaewkasi"
-    def authorEmail = "chanwit@gmail.com"
+    def author = "Maicon Mauricio"
+    def authorEmail = "maicon.dev@pm.me"
     def title = "ZK plugin for Grails"
     def documentation = "http://grails.org/plugin/zk"
     def description = """\
@@ -113,19 +114,21 @@ A ZKGrails fork which provides support for Grails 4.
 ZKGrails originated from Flyisland's ZK Plugin,
 ZKGrails adds and enhances the ZK's RIA capabilities
 and seamlessly integrates them with Grails' infrastructures.
+
+Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.2 and bellow)
 """
 
     // License: one of 'APACHE', 'GPL2', 'GPL3'
     def license = "LGPL"
 
     // Any additional developers beyond the author specified above.
-    def developers = [ [ name: "Maicon Mauricio", email: "maiconandsilva@gmail.com" ]]
+//    def developers = [ [ name: "Maicon Mauricio", email: "maicon.dev@pm.me" ]]
 
     // Location of the plugin's issue tracker.
-    def issueManagement = [ system: "Github", url: "https://github.com/maiconandsilva/zk-grails/issues" ]
+    def issueManagement = [ system: "Github", url: "https://github.com/zkgroovy/zk-grails/issues" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [ url: "https://github.com/maiconandsilva/zk-grails/" ]
+    def scm = [ url: "https://github.com/zkgroovy/zk-grails/" ]
 
     @CompileStatic
     protected static String getScope(Class<?> clazz, String defaultScope) {
