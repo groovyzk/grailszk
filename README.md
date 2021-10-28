@@ -1,7 +1,7 @@
 # ZK-Grails
 
-ZKGrails fork. A plugin to integrate ZK infrastructure to modern Grails.
-An attempt to port the plugin to versions 3 and 4 of Grails.
+A plugin to integrate ZK infrastructure to modern Grails.
+A port of [ZKGrails](https://github.com/zkgrails/zkgrails) plugin to versions 3 and 4 of Grails.
 Source code until version 2.5.2 comes from http://code.google.com/p/zkgrails.
 Below version 2.0 the code is forked from https://github.com/zkgrails/zkgrails.
 
