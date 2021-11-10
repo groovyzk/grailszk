@@ -8,8 +8,15 @@ buildscript {
 }
 
 allprojects {
+    apply plugin: "java-library"
+    apply plugin: "signing"
+    apply plugin: "maven-publish"
+
     group "$project.group"
     version "$project.projectVersion"
+
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 ext {
@@ -22,12 +29,6 @@ ext {
 
 if (!islocalRelease) {
     apply plugin: "io.github.gradle-nexus.publish-plugin"
-}
-
-allprojects {
-    apply plugin: "java-library"
-    apply plugin: "signing"
-    apply plugin: "maven-publish"
 }
 
 subprojects {

@@ -21,14 +21,11 @@ import com.opensymphony.module.sitemesh.RequestConstants;
 import com.opensymphony.module.sitemesh.html.util.CharArray;
 import com.opensymphony.sitemesh.Content;
 import com.opensymphony.sitemesh.ContentProcessor;
-import com.opensymphony.sitemesh.Decorator;
 import com.opensymphony.sitemesh.compatability.HTMLPage2Content;
-import com.opensymphony.sitemesh.compatability.OldDecorator2NewDecorator;
 import com.opensymphony.sitemesh.compatability.PageParser2ContentProcessor;
 import com.opensymphony.sitemesh.webapp.ContainerTweaks;
 import com.opensymphony.sitemesh.webapp.SiteMeshFilter;
 import com.opensymphony.sitemesh.webapp.SiteMeshWebAppContext;
-import com.opensymphony.sitemesh.webapp.decorator.NoDecorator;
 import grails.core.GrailsApplication;
 import grails.persistence.support.NullPersistentContextInterceptor;
 import grails.persistence.support.PersistenceContextInterceptor;
@@ -97,9 +94,11 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         layoutViewResolver = WebUtils.lookupViewResolver(applicationContext);
 
         final GrailsApplication grailsApplication = GrailsWebUtil.lookupApplication(fc.getServletContext());
-        String encoding = (String) Holders.getFlatConfig().get(CONFIG_OPTION_GSP_ENCODING);
-        if (encoding != null) {
-            defaultEncoding = encoding;
+
+        // TODO: Verify the line below. In war files it returns NavigableMapConfig
+        Object encoding = Holders.getFlatConfig().get(CONFIG_OPTION_GSP_ENCODING);
+        if (encoding instanceof String) {
+            defaultEncoding = (String) encoding;
         }
 
         Map<String, PersistenceContextInterceptor> interceptors = applicationContext.getBeansOfType(PersistenceContextInterceptor.class);
