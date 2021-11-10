@@ -2,8 +2,3 @@
 	path = zk-grails-extension
 	url = https://github.com/zkgroovy/zk-grails-extension.git
 	ignore = none
-
-[submodule "zk-grails-gradle-plugin"]
-	path = zk-grails-gradle-plugin
-	url = https://github.com/zkgroovy/zk-grails-gradle-plugin.git
-	ignore = all
