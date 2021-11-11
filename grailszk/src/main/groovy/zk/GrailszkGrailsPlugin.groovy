@@ -41,7 +41,7 @@ import org.zkoss.zk.ui.http.HttpSessionListener
 import javax.servlet.DispatcherType
 
 @Slf4j
-class ZkGrailsPlugin extends Plugin {
+class GrailszkGrailsPlugin extends Plugin {
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "4.0.11 > *"
 
@@ -106,10 +106,10 @@ class ZkGrailsPlugin extends Plugin {
 
     def author = "Maicon Mauricio"
     def authorEmail = "maicon.dev@pm.me"
-    def title = "ZK plugin for Grails"
-    def documentation = "http://grails.org/plugin/zk"
+    def title = "Grailszk: Plugin to integrate ZK with Grails"
+    def documentation = "https://github.com/groovyzk/grailszk#readme"
     def description = """\
-A ZKGrails fork which provides support for Grails 4.
+A ZKGrails fork which provides support and integration between ZK and Grails 4.
 
 ZKGrails originated from Flyisland's ZK Plugin,
 ZKGrails adds and enhances the ZK's RIA capabilities
@@ -125,10 +125,10 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
 //    def developers = [ [ name: "Maicon Mauricio", email: "maicon.dev@pm.me" ]]
 
     // Location of the plugin's issue tracker.
-    def issueManagement = [ system: "Github", url: "https://github.com/zkgroovy/zk-grails/issues" ]
+    def issueManagement = [ system: "Github", url: "https://github.com/groovyzk/grailszk/issues" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [ url: "https://github.com/zkgroovy/zk-grails/" ]
+    def scm = [ url: "https://github.com/groovyzk/grailszk" ]
 
     @CompileStatic
     protected static String getScope(Class<?> clazz, String defaultScope) {

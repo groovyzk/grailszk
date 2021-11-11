@@ -1,6 +1,6 @@
-rootProject.name = "zk-grails-core"
+rootProject.name = "grailszk-core"
 
 include(
-    "zk-grails",
-    "zk-grails-extension",
+    "grailszk",
+    "grailszk-common",
 )

@@ -258,13 +258,11 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Matched URI [" + uri + "] to URL mapping [" + info + "], forwarding to [" + forwardUrl + "] with response [" + response.getClass() + "]");
                         }
-                    } else if(viewName != null && viewName.endsWith(ZUL_SUFFIX)) {
+                    } else if(viewName.endsWith(ZUL_SUFFIX)) {
                         RequestDispatcher dispatcher = request.getRequestDispatcher(viewName);
                         dispatcher.forward(request, response);
                     } else {
-                        if(viewName == null) {
-                            dispatched = false;
-                        } else if (!renderViewForUrlMappingInfo(request, response, info, viewName)) {
+                        if (!renderViewForUrlMappingInfo(request, response, info, viewName)) {
                             dispatched = false;
                         }
                     }

@@ -46,11 +46,11 @@ subprojects {
                 pom {
                     name = project.name.replace('-', ' ').capitalize()
                     description = 'A Grails plugin that gives special support for building ZK applications'
-                    url = 'https://github.com/zkgroovy/zk-grails'
+                    url = 'https://github.com/groovyzk/grailszk'
                     licenses {
                         license {
                             name = 'LGPL 3.0'
-                            url = 'https://github.com/zkgroovy/zk-grails/blob/main/LICENSE'
+                            url = 'https://github.com/groovyzk/grailszk/blob/main/LICENSE'
                         }
                     }
                     developers {
@@ -61,9 +61,9 @@ subprojects {
                         }
                     }
                     scm {
-                        url = 'https://github.com/zkgroovy/zk-grails/tree/main'
-                        connection = 'scm:git:git://github.com/zkgroovy/zk-grails.git'
-                        developerConnection = 'scm:git:ssh://github.com:zkgroovy/zk-grails.git'
+                        url = 'https://github.com/groovyzk/grailszk/tree/main'
+                        connection = 'scm:git:git://github.com/groovyzk/grailszk.git'
+                        developerConnection = 'scm:git:ssh://github.com:groovyzk/grailszk.git'
                     }
                 }
             }

@@ -1,13 +1,11 @@
 buildscript {
     repositories {
         mavenLocal()
-        maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.0.10"
-        classpath "io.github.zkgroovy:zk-grails-gradle-plugin:$zkGrailsGradlePluginVersion"
     }
 }
 
@@ -19,7 +17,6 @@ apply plugin: "org.grails.grails-gsp"
 
 repositories {
     mavenLocal()
-    maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
     maven { url "https://repo.grails.org/grails/core" }
 }
 
@@ -33,7 +30,7 @@ configurations {
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-    compile project(":zk-grails-extension")
+    compile project(":grailszk-common")
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.grails:grails-core"

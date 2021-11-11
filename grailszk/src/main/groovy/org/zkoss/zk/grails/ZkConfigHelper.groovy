@@ -5,7 +5,7 @@ import grails.util.Holders
 
 
 //
-// Helper class to get the Url Mapping in the ZKPageFilter and ZkGrailsPlugin
+// Helper class to get the Url Mapping in the ZKPageFilter and GrailszkGrailsPlugin
 //
 @SuppressWarnings("deprecation")
 class ZkConfigHelper {
