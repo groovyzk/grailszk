@@ -89,7 +89,7 @@ public class GroovyGrailsInterpreter extends GenericInterpreter {
         return ip;
     }
 
-    /** {@link GenericInterpreter#}
+    /** {@link GenericInterpreter}
      *
      * executing script
      *

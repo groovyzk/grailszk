@@ -230,7 +230,7 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
      * don't call the overriden invokeMethod</p>
      *
      * @param event Event object
-     * @throws Exception
+     * @throws Exception generic exception
      */
     @Override
     public void onEvent(Event event) throws Exception {

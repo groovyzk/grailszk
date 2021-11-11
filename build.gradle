@@ -17,6 +17,10 @@ allprojects {
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+
+    javadoc {
+        failOnError = false
+    }
 }
 
 apply plugin: "io.github.gradle-nexus.publish-plugin"
