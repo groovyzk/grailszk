@@ -28,6 +28,15 @@ grails-app install-zk-xml
 #### Apply `grailszk-gradle-plugin` in `build.gradle`
 
 ```groovy
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "io.github.zkgroovy:grailszk-gradle-plugin:1.0.0"
+    }
+}
+
 apply plugin:"io.github.zkgroovy.grailszk-gradle-plugin"
 ```
 
