@@ -43,7 +43,7 @@ import javax.servlet.DispatcherType
 @Slf4j
 class GrailszkGrailsPlugin extends Plugin {
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "4.0.11 > *"
+    def grailsVersion = "5.0.0 > *"
 
     def profiles = ["web"]
 
@@ -68,7 +68,7 @@ class GrailszkGrailsPlugin extends Plugin {
         "file:./plugins/*/grails-app/livemodels/**/*LiveModel.groovy",
         "file:./grails-app/viewmodels/**/*ViewModel.groovy",
         "file:./plugins/*/grails-app/viewmodels/**/*ViewModel.groovy",
-        "file:./grails-app/zul/**/*.zul" // support watching ZUL files
+//        "file:./grails-app/zul/**/*.zul" // support watching ZUL files
     ]
 
     // resources that are excluded from plugin packaging
@@ -235,7 +235,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
         //
         grailsApplication.viewModelClasses.each { viewModelClass ->
             "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
-                bean.scope = getScope(viewModelClass.clazz, "prototype")
+                bean.scope = this.getScope(viewModelClass.clazz, "prototype")
                 bean.autowire = "byName"
             }
         }
@@ -257,7 +257,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
                 }
             } else {
                 "${composerBeanName}"(composerClass.clazz) { bean ->
-                    bean.scope = getScope(composerClass.clazz, "prototype")
+                    bean.scope = this.getScope(composerClass.clazz, "prototype")
                     bean.autowire = "byName"
                 }
             }
@@ -268,7 +268,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
         //
         grailsApplication.facadeClasses.each { facadeClass ->
             "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
-                bean.scope = getScope(facadeClass.clazz, "session")
+                bean.scope = this.getScope(facadeClass.clazz, "session")
                 bean.autowire = "byName"
             }
         }
@@ -278,7 +278,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
         //
         grailsApplication.cometClasses.each { cometClass ->
             "${cometClass.propertyName}"(cometClass.clazz) { bean ->
-                bean.scope = getScope(cometClass.clazz, "prototype")
+                bean.scope = this.getScope(cometClass.clazz, "prototype")
                 bean.autowire = "byName"
             }
         }
@@ -479,7 +479,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
                     }
                 } else {
                     "${composerBeanName}"(composerClass.clazz) { bean ->
-                        bean.scope = getScope(composerClass.clazz, "prototype")
+                        bean.scope = this.getScope(composerClass.clazz, "prototype")
                         bean.autowire = "byName"
                     }
                 }
@@ -498,7 +498,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             def viewModelClass = application.addArtefact(ViewModelArtefactHandler.TYPE, event.source)
             beans {
                 "${viewModelClass.propertyName}"(viewModelClass.clazz) { bean ->
-                    bean.scope = getScope(viewModelClass.clazz, "prototype")
+                    bean.scope = this.getScope(viewModelClass.clazz, "prototype")
                     bean.autowire = 'byName'
                 }
             }
@@ -506,7 +506,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             def facadeClass = application.addArtefact(FacadeArtefactHandler.TYPE, event.source)
             beans {
                 "${facadeClass.propertyName}"(facadeClass.clazz) { bean ->
-                    bean.scope = getScope(facadeClass.clazz, "session")
+                    bean.scope = this.getScope(facadeClass.clazz, "session")
                     bean.autowire = 'byName'
                 }
             }
@@ -514,7 +514,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             def cometClass = application.addArtefact(CometArtefactHandler.TYPE, event.source)
             beans {
                 "${cometClass.propertyName}"(cometClass.clazz) { bean ->
-                    bean.scope = getScope(cometClass.clazz, "prototype")
+                    bean.scope = this.getScope(cometClass.clazz, "prototype")
                     bean.autowire = 'byName'
                 }
             }
