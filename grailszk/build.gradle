@@ -49,6 +49,24 @@ dependencies {
     implementation "org.grails.plugins:async"
     implementation "org.grails.plugins:scaffolding"
     implementation "org.grails.plugins:gsp"
+    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zul:$zkVersion"
+    implementation "org.zkoss.zk:zhtml:$zkVersion"
+    implementation "org.zkoss.zk:zkbind:$zkVersion"
+    implementation "org.zkoss.common:zel:$zkVersion"
+    implementation "org.zkoss.common:zcommon:$zkVersion"
+    implementation ("org.zkoss.common:zweb:$zkVersion") {
+        transitive = true
+        exclude module: "ResourceCaches"
+    }
+    if (zkVersion >= "9") {
+        // Grailzk depends on this version
+        implementation "org.zkoss.zk:zkplus-legacy:$zkVersion"
+//        implementation "org.zkoss.common:zweb-dsp:$zkVersion"
+    } else {
+        implementation "org.zkoss.zk:zkplus:$zkVersion"
+    }
+
     compileOnly "io.micronaut:micronaut-inject-groovy"
     console "org.grails:grails-console"
     profile "org.grails.profiles:web-plugin"
