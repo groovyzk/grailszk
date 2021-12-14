@@ -15,13 +15,7 @@ class ZkConfigHelper {
     // Return String[]{"zul"} if not configured
     //
     static ArrayList<String> getSupportExtensions() {
-//        def exts = ConfigurationHolder.config?.grails.zk.extensions
-        def exts = Holders.config.grails.zk?.extensions
-        if(exts) {
-            return exts
-        } else {
-            return ["zul"]
-        }
+        return Holders.config.getProperty("grails.zk.extensions", List<String>, ["zul"])
     }
 
     //
@@ -29,12 +23,6 @@ class ZkConfigHelper {
     // Default to false to maintan backward compatibility.
     //
     static boolean skipZscriptWiring() {
-        def skipZscriptWiring = Holders.config.grails.zk?.skipZscriptWiring
-
-        if(skipZscriptWiring != null) {
-            return skipZscriptWiring
-        }
-
-        return false
+        return Holders.config.getProperty("grails.zk.skipZscriptWiring", Boolean, false)
     }
 }
