@@ -40,12 +40,30 @@ buildscript {
 apply plugin:"io.github.zkgroovy.grailszk-gradle-plugin"
 ```
 
-### Add grailszk dependency
+### Add grailszk dependency (example)
 
 build.gradle:
 ```groovy
+// Omitted Grails dependencies for brevity
 dependencies {
-    compile "io.github.zkgroovy:grailszk:$grailszkVersion"
+    implementation "io.github.zkgroovy:grailszk:$grailszkVersion"
+    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zul:$zkVersion"
+    implementation "org.zkoss.zk:zhtml:$zkVersion"
+    implementation "org.zkoss.zk:zkbind:$zkVersion"
+    implementation "org.zkoss.common:zel:$zkVersion"
+    implementation "org.zkoss.common:zcommon:$zkVersion"
+    implementation ("org.zkoss.common:zweb:$zkVersion") {
+        transitive = true
+        exclude module: "ResourceCaches"
+    }
+    if (zkVersion >= "9") {
+        // Grailzk depends on this version
+        implementation "org.zkoss.zk:zkplus-legacy:$zkVersion"
+//        implementation "org.zkoss.common:zweb-dsp:$zkVersion"
+    } else {
+        implementation "org.zkoss.zk:zkplus:$zkVersion"
+    }
 }
 
 configurations.all {
@@ -56,6 +74,7 @@ configurations.all {
 gradle.properties:
 
 ```
+zkVersion=9.6.0.1
 grailszkVersion=3.0.0
 ```
 
