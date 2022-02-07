@@ -30,7 +30,7 @@ configurations {
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-    compile project(":grailszk-common")
+    implementation project(":grailszk-common")
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.grails:grails-core"
