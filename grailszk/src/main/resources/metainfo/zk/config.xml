@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+    <config-name>grailszk</config-name>
+    <system-config>
+        <web-app-factory-class>org.zkoss.zk.grails.sys.GrailsWebAppFactory</web-app-factory-class>
+        <ui-factory-class>org.zkoss.zk.grails.ui.GrailsComposerFactory</ui-factory-class>
+        <!--        <label-location>file:///grails-app/i18n/messages.properties</label-location>-->
+        <!--        <label-location>/messages.properties</label-location>-->
+        <!--        <label-location>/WEB-INF/zk-label.properties</label-location>-->
+        <!--        <id-generator-class>a_class_name</id-generator-class>-->
+    </system-config>
+    <library-property>
+        <name>org.zkoss.zk.ui.metainfo.page.Loader.class</name>
+        <value>org.zkoss.web.util.resource.GrailsContentLoader</value>
+    </library-property>
+    <library-property>
+        <name>org.zkoss.web.servlet.http.URLEncoder</name>
+        <value>org.zkoss.zk.grails.web.URLEncoder</value>
+    </library-property>
+    <listener>
+        <listener-class>org.zkoss.zkplus.util.ThreadLocalListener</listener-class>
+    </listener>
+    <zscript-config>
+        <language-name>GroovyGrails</language-name>
+        <interpreter-class>
+            org.zkoss.zk.grails.scripting.GroovyGrailsInterpreter
+        </interpreter-class>
+    </zscript-config>
+    <preference>
+        <name>ThreadLocal</name>
+        <value>
+            org.springframework.transaction.support.TransactionSynchronizationManager=resources,synchronizations,currentTransactionName,currentTransactionReadOnly,actualTransactionActive;
+            org.springframework.transaction.interceptor.TransactionAspectSupport=transactionInfoHolder;
+            org.springframework.web.context.request.RequestContextHolder=requestAttributesHolder,inheritableRequestAttributesHolder;
+        </value>
+    </preference>
+</zk>
