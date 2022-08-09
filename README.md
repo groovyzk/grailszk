@@ -1,19 +1,23 @@
 # Grailszk
 
 A plugin to integrate ZK infrastructure to modern Grails.
-A port of [ZKGrails](https://github.com/zkgrails/zkgrails) plugin to version 4 of Grails.
+A port of [ZKGrails](https://github.com/zkgrails/zkgrails) plugin to current versions of Grails.
+Versions 5 and 4 are supported. Version 3 is allowed but not tested.
 
 ## Migrating from ZKGrails 2.X.X
 
 ### Upgrading Grails
 
-Follow these tutorials for upgrading to Grails 4
+Follow these tutorials for upgrading Grails:
 
 - https://docs.grails.org/3.0.x/guide/upgrading.html
 - https://docs.grails.org/4.0.12/guide/single.html#upgrading
+- https://docs.grails.org/5.2.2/guide/upgrading.html#upgrading40x
 - https://www.danvega.dev/blog/2017/06/16/migrating-grails-2-x-applications-grails-3-x
 
 ## Requirements 
+
+---
 
 #### Resources
 
@@ -47,7 +51,9 @@ build.gradle:
 // Omitted Grails dependencies for brevity
 dependencies {
     implementation "io.github.zkgroovy:grailszk:$grailszkVersion"
-    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zk:$zkVersion", {
+        exclude group: "org.zkoss.zk", module: "zkplus"
+    }
     implementation "org.zkoss.zk:zul:$zkVersion"
     implementation "org.zkoss.zk:zhtml:$zkVersion"
     implementation "org.zkoss.zk:zkbind:$zkVersion"
@@ -57,13 +63,7 @@ dependencies {
         transitive = true
         exclude module: "ResourceCaches"
     }
-    if (zkVersion >= "9") {
-        // Grailzk depends on this version
-        implementation "org.zkoss.zk:zkplus-legacy:$zkVersion"
-//        implementation "org.zkoss.common:zweb-dsp:$zkVersion"
-    } else {
-        implementation "org.zkoss.zk:zkplus:$zkVersion"
-    }
+    implementation "org.zkoss.zk:zkplus:7.0.1"
 }
 
 configurations.all {
@@ -71,17 +71,41 @@ configurations.all {
 }
 ```
 
-gradle.properties:
+gradle.properties (see available versions):
 
-```
+```properties
 zkVersion=9.6.0.1
-grailszkVersion=3.0.0
+grailszkVersion=4.2.0
+```
+
+### Spring Security
+
+In order to use this plugin with Spring Security you should have the following configuration:
+
+build.gradle:
+```groovy
+repositories {
+    maven { url "https://mavensync.zkoss.org/maven2" }
+}
+
+dependencies {
+    implementation "org.zkoss.zk:zkspring-security:4.0.1"
+}
+```
+
+zk.xml:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<zk>
+    <listener>
+        <listener-class>org.zkoss.spring.init.SecurityContextAwareExecutionListener</listener-class>
+    </listener>
+</zk>
 ```
 
 ## Usage
 
 - See [this simple Grailszk Example project](https://github.com/maiconandsilva/grailszk-example).
-- See [Implementing Load-on-Demand using ZK and Grails](https://dzone.com/articles/implementing-load-demand-using)
 
 ### Versions below 2.5.2
 
@@ -89,6 +113,9 @@ Download ZK jars [`zkgrails2-common.jar`](https://github.com/zk-groovy/zkgrails-
 and place them in the lib folder which must be inside the plugin root directory.  
 
 ### Notes
+
+> Always change the version of the project before publishing. e.g. publishing version 4 to Maven Local:
+> `./change-version.sh -v 4 && ./gradlew -Pversion=4.2.2 publishToMavenLocal`
 
 - Source code until version 2.5.2 comes from http://code.google.com/p/zkgrails.
 - Below version 2.0 the code is forked from https://github.com/zkgrails/zkgrails.
