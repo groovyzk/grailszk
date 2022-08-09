@@ -1,5 +1,8 @@
 package org.zkoss.zk.grails
 
+import zk.grails.ZkTagLib
+
+import javax.servlet.ServletContext
 import java.util.concurrent.ConcurrentHashMap
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.zkoss.zk.ui.event.EventListener
@@ -17,16 +20,16 @@ class ZkBuilder {
     Page page
     Component parent
     def componentIds =[:]
-    def z = null
+    ZkTagLib z = null
 
     def resource(dir, file) {
         if(z == null) {
             def p = page
             if(!p) p = parent.page
-            def ctx  = WebApplicationContextUtils.getRequiredWebApplicationContext(p.desktop.webApp.nativeContext)
-            z = ctx.getBean('ZkTagLib')
+            def ctx  = WebApplicationContextUtils.getRequiredWebApplicationContext(p.desktop.webApp.nativeContext as ServletContext)
+            z = ctx.getBean('ZkTagLib') as ZkTagLib
         }
-        return z.resource(dir:dir, file: file)
+        return z.resource(dir:dir, file: file) as Object
     }
 
     def $(query) {
