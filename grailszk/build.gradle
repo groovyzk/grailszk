@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.3.4"
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.4.6"
     }
 }
 
@@ -18,6 +18,7 @@ apply plugin: "org.grails.grails-gsp"
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
+    mavenCentral()
 }
 
 configurations {
@@ -49,7 +50,9 @@ dependencies {
     implementation "org.grails.plugins:async"
     implementation "org.grails.plugins:scaffolding"
     implementation "org.grails.plugins:gsp"
-    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zk:$zkVersion", {
+        exclude group: "org.zkoss.zk", module: "zkplus"
+    }
     implementation "org.zkoss.zk:zul:$zkVersion"
     implementation "org.zkoss.zk:zhtml:$zkVersion"
     implementation "org.zkoss.zk:zkbind:$zkVersion"
@@ -59,18 +62,12 @@ dependencies {
         transitive = true
         exclude module: "ResourceCaches"
     }
-    if (zkVersion >= "9") {
-        // Grailzk depends on this version
-        implementation "org.zkoss.zk:zkplus-legacy:$zkVersion"
-//        implementation "org.zkoss.common:zweb-dsp:$zkVersion"
-    } else {
-        implementation "org.zkoss.zk:zkplus:$zkVersion"
-    }
+    implementation "org.zkoss.zk:zkplus:7.0.1"
 
     compileOnly "io.micronaut:micronaut-inject-groovy"
     console "org.grails:grails-console"
     profile "org.grails.profiles:web-plugin"
-    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:3.3.4"
+    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:3.4.6"
     testImplementation "io.micronaut:micronaut-inject-groovy"
     testImplementation "org.grails:grails-gorm-testing-support"
     testImplementation "org.mockito:mockito-core"
