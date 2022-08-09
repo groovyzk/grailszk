@@ -1,4 +1,0 @@
-[submodule "grailszk-common"]
-	path = grailszk-common
-	url = https://github.com/groovyzk/grailszk-common.git
-	ignore = none

@@ -1,0 +1,16 @@
+dependencies {
+    implementation "org.grails:grails-dependencies:$grailsVersion"
+    implementation "org.grails:grails-core"
+    implementation "org.grails.plugins:gsp"
+    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zul:$zkVersion"
+    implementation "org.zkoss.zk:zhtml:$zkVersion"
+    implementation "org.zkoss.zk:zkplus:$zkVersion"
+    implementation "org.zkoss.zk:zkbind:$zkVersion"
+    implementation ("org.zkoss.common:zweb:$zkVersion") {
+        transitive = true
+        exclude module: "ResourceCaches"
+    }
+    implementation "org.zkoss.common:zel:$zkVersion"
+    implementation "org.zkoss.common:zcommon:$zkVersion"
+}
