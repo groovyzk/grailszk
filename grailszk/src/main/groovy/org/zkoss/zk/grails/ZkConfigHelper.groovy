@@ -15,7 +15,7 @@ class ZkConfigHelper {
     // Return String[]{"zul"} if not configured
     //
     static ArrayList<String> getSupportExtensions() {
-        return Holders.config.getProperty("grails.zk.extensions", List<String>, ["zul"])
+        return Holders.config.getProperty("grails.zk.extensions", List, ["zul"])
     }
 
     //
