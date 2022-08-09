@@ -43,7 +43,7 @@ import javax.servlet.DispatcherType
 @Slf4j
 class GrailszkGrailsPlugin extends Plugin {
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "5.0.0 > *"
+    def grailsVersion = "3.0.0 > *"
 
     def profiles = ["web"]
 
