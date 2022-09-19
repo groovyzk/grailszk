@@ -59,15 +59,10 @@ class GrailszkGrailsPlugin extends Plugin {
 
     def watchedResources = [
         "file:./grails-app/composers/**/*Composer.groovy",
-        "file:./plugins/*/grails-app/composers/**/*Composer.groovy",
         "file:./grails-app/comets/**/*Comet.groovy",
-        "file:./plugins/*/grails-app/comets/**/*Comet.groovy",
         "file:./grails-app/facade/**/*Facade.groovy",
-        "file:./plugins/*/grails-app/facade/**/*Facade.groovy",
         "file:./grails-app/livemodels/**/*LiveModel.groovy",
-        "file:./plugins/*/grails-app/livemodels/**/*LiveModel.groovy",
         "file:./grails-app/viewmodels/**/*ViewModel.groovy",
-        "file:./plugins/*/grails-app/viewmodels/**/*ViewModel.groovy",
 //        "file:./grails-app/zul/**/*.zul" // support watching ZUL files
     ]
 
@@ -87,7 +82,7 @@ class GrailszkGrailsPlugin extends Plugin {
         "grails-app/viewmodels/**",
         "grails-app/taglib/zk/grails/MyTagLib.groovy",
         "grails-app/i18n/*.properties",
-        "grails-app/zul/**",
+        "grails-app/zul/**/*.zul",
         "src/main/webapp/css/**",
         "src/main/webapp/issue*",
         "src/main/webapp/META-INF/**",
@@ -210,7 +205,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             name = "sitemesh"
             filter = bean(ZKGrailsPageFilter)
             urlPatterns = ["/*"]
-            order = OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER + 50
+            order = OrderedFilter.HIGHEST_PRECEDENCE
             asyncSupported = supportsAsync
             dispatcherTypes = EnumSet.of(DispatcherType.REQUEST, DispatcherType.ERROR)
         }
@@ -219,7 +214,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             name = "urlMapping"
             filter = bean(ZULUrlMappingsFilter)
             urlPatterns = ["/*"]
-            order = OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER + 60
+            order = OrderedFilter.LOWEST_PRECEDENCE
             asyncSupported = supportsAsync
             dispatcherTypes = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD)
         }
@@ -343,15 +338,15 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             if(name.startsWith("on") && args[0] instanceof Closure) {
                 // register the new method to avoid methodMissing overhead
                 org.zkoss.zk.ui.AbstractComponent.metaClass."${name}" { Closure listener ->
-                    delegate.addEventListener(name, listener as EventListener)
+                    delegate.addEventListener(name, listener)
                 }
-                delegate.addEventListener(name, args[0] as EventListener)
+                delegate.addEventListener(name, args[0])
                 return
             } else if (name.startsWith("addOn") && (args[0] instanceof Closure || args[0] instanceof EventListener)) {
                 def eventName = name.toEventName()
                 def listener = args[0] instanceof Closure ? args[0] as EventListener : args[0]
                 org.zkoss.zk.ui.AbstractComponent.metaClass."${name}" { Closure handler ->
-                    delegate.addEventListener(eventName, handler as EventListener)
+                    delegate.addEventListener(eventName, handler)
                     handler as EventListener
                 }
                 // an overload version o add an EventListener directly
