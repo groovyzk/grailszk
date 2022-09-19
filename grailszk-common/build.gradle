@@ -1,8 +1,15 @@
 dependencies {
-    implementation "org.grails:grails-dependencies:$grailsVersion"
+    implementation "org.grails:grails-dependencies:$grailsVersion", {
+        exclude group: "com.h2database", module: "h2"
+        exclude group: "commons-collections", module: "commons-collections"
+        exclude group: "commons-io", module: "commons-io"
+    }
     implementation "org.grails:grails-core"
     implementation "org.grails.plugins:gsp"
-    implementation "org.zkoss.zk:zk:$zkVersion"
+    implementation "org.zkoss.zk:zk:$zkVersion", {
+        exclude group: "commons-codec", module: "commons-codec"
+        exclude group: "org.beanshell", module: "bsh"
+    }
     implementation "org.zkoss.zk:zul:$zkVersion"
     implementation "org.zkoss.zk:zhtml:$zkVersion"
     implementation "org.zkoss.zk:zkplus:$zkVersion"
