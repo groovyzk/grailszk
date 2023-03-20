@@ -177,18 +177,6 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             return;
         }
 
-        if(isZUL(request)) {
-            //
-            // TODO if disable live
-            //
-            Content content = obtainContent(contentProcessor, webAppContext, request, response, chain);
-            if (content == null || response.isCommitted()) {
-                return;
-            }
-            new GrailsNoDecorator().render(content, webAppContext);
-            return;
-        }
-
         if(isZK(request)) {
             chain.doFilter(request, response);
             return;
