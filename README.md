@@ -103,6 +103,21 @@ zk.xml:
 </zk>
 ```
 
+### Spring Boot dev-tools
+
+In order to make ZK work with __spring-boot-devtools__ without raising any errors create a `META-INF/spring-devtools.properties` in the `grails-app/conf/` folder including Grailszk, all ZK dependencies, components, themes and plugins. e.g:
+
+```shell
+restart.include.zk=/z[\\w]+-[\\w\\d-\\.]+\\.jar
+restart.include.ckez=/ckez-(.*).jar
+restart.include.breeze=/breeze-(.*).jar
+restart.include.grailszk=/grailszk-(.*).jar
+restart.include.silvertail=/silvertail-(.*).jar
+restart.include.iceblue_c=/iceblue_c-(.*).jar
+restart.include.sapphire=/sapphire-(.*).jar
+restart.include.codemirror=/(.*)codemirror(.*).jar
+```
+
 ## Usage
 
 - See [this simple Grailszk Example project](https://github.com/maiconandsilva/grailszk-example).
