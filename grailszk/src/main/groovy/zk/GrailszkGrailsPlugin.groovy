@@ -186,7 +186,7 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
         // e.g. ["*.zul", "/zkau/*"]
         //
         def filterUrls = supportExts.collect{ "*." + it } + ["/zkau/*"]
-        def urls = supportExts.collect { "*.$it" } + ["*.dsp", "*.zhtml", "*.svg", "*.xml2html"]
+        def urls = supportExts.collect { "*.$it" } + ["*.dsp", "*.zhtml", "*.xml2html"]
 
         // Servlet
         auEngine(ServletRegistrationBean, new DHtmlUpdateServlet(), "/zkau/*")
