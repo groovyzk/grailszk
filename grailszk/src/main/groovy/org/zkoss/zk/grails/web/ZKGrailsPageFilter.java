@@ -94,12 +94,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
         layoutViewResolver = WebUtils.lookupViewResolver(applicationContext);
 
         final GrailsApplication grailsApplication = GrailsWebUtil.lookupApplication(fc.getServletContext());
-
-        // TODO: Verify the line below. In war files it returns NavigableMapConfig
-        Object encoding = Holders.getFlatConfig().get(CONFIG_OPTION_GSP_ENCODING);
-        if (encoding instanceof String) {
-            defaultEncoding = (String) encoding;
-        }
+        defaultEncoding = grailsApplication.getConfig().getProperty(CONFIG_OPTION_GSP_ENCODING, defaultEncoding);
 
         Map<String, PersistenceContextInterceptor> interceptors = applicationContext.getBeansOfType(PersistenceContextInterceptor.class);
         if (!interceptors.isEmpty()) {
@@ -190,8 +185,7 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             if (content == null || response.isCommitted()) {
                 return;
             }
-            Content content2 = applyLive(request, content);
-            new GrailsNoDecorator().render(content2, webAppContext);
+            new GrailsNoDecorator().render(content, webAppContext);
             return;
         }
 
@@ -220,7 +214,6 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
             if (content == null || response.isCommitted()) {
                 return;
             }
-            // applyLive(request, content);
             detectContentTypeFromPage(content, response);
             new GrailsNoDecorator().render(content, webAppContext);
             dispatched = true;
@@ -242,69 +235,6 @@ public class ZKGrailsPageFilter extends SiteMeshFilter {
                 persistenceInterceptor.destroy();
             }
         }
-    }
-
-    private Content applyLive(HttpServletRequest request, Content content) throws IOException {
-        if(Environment.getCurrent() == Environment.DEVELOPMENT) {
-            // if ZK Grails in the Dev mode
-            // insert z-it-live.js
-            if(content instanceof GSPSitemeshPage) {
-                GSPSitemeshPage page = (GSPSitemeshPage)content;
-                String pageContent = page.getPage();
-                if(pageContent == null) {
-                    return content;
-                }
-                String contextPath = request.getContextPath();
-                //
-                // src="/zello/zkau/
-                if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
-                    StreamCharBuffer buffer = new StreamCharBuffer();
-                    LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
-                    String link = grailsLinkGenerator.resource(new HashMap<String, String>(){{
-                        put("dir","ext/js");
-                        put("file","z-it-live.js");
-                    }});
-                    buffer.getWriter().write(
-                        pageContent.replace("</head>",
-                            "<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n</head>")
-                    );
-                    page.setPageBuffer(buffer);
-                }
-                return content;
-            } else if(content instanceof HTMLPage2Content) {
-                HTMLPage2Content page2Content = (HTMLPage2Content)content;
-                try {
-                    Field fPage = HTMLPage2Content.class.getDeclaredField("page");
-                    fPage.setAccessible(true);
-                    GrailsTokenizedHTMLPage htmlPage = (GrailsTokenizedHTMLPage)fPage.get(page2Content);
-                    String pageContent = htmlPage.getPage();
-                    String head = htmlPage.getHead();
-                    String body = htmlPage.getBody();
-
-                    String contextPath = request.getContextPath();
-                    //
-                    // src="/zello/zkau/
-                    if(pageContent.indexOf("src=\""+ contextPath + "/zkau/") > 0) {
-                        LinkGenerator grailsLinkGenerator = (LinkGenerator) applicationContext.getBean("grailsLinkGenerator");
-                        String link = grailsLinkGenerator.resource(new HashMap<String, String>(){{
-                            put("dir","ext/js");
-                            put("file","z-it-live.js");
-                        }});
-                        pageContent = pageContent.replace("</head>", "<script type=\"text/javascript\" src=\"" + link + "\" charset=\"UTF-8\"></script>\n</head>");
-                        head = head + "\n<script type=\"text/javascript\" src=\""  + link + "\" charset=\"UTF-8\"></script>\n";
-                        CharArray newBody = new CharArray(body.length());
-                        newBody.append(body);
-                        CharArray newHead = new CharArray(head.length());
-                        newHead.append(head);
-                        GrailsTokenizedHTMLPage newHtmlPage = new GrailsTokenizedHTMLPage(pageContent.toCharArray(), newBody, newHead);
-                        return new HTMLPage2Content(newHtmlPage);
-                    }
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return content;
     }
 
     private String detectZULFile(String pageContent, String contextPath) {

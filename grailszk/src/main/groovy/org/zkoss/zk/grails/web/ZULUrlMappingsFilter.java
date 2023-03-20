@@ -28,6 +28,7 @@ import grails.web.mapping.UrlMappingInfo;
 import grails.web.mapping.UrlMappingsHolder;
 import grails.web.mapping.exceptions.UrlMappingException;
 import grails.web.mime.MimeType;
+import groovy.util.ConfigObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
@@ -43,6 +44,7 @@ import org.grails.web.servlet.mvc.GrailsWebRequest;
 import org.grails.web.util.GrailsApplicationAttributes;
 import org.grails.web.util.WebUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -423,11 +425,12 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
         }
     }
 
-    protected void createStackTraceFilterer() {
+    protected void createStackTraceFilterer() throws LinkageError {
         try {
-            filterer = (StackTraceFilterer) GrailsClassUtils.instantiateFromFlatConfig(
-                    grailsConfig.flatten(), "grails.logging.stackTraceFiltererClass", DefaultStackTraceFilterer.class.getName());
-            // TODO: verify
+            String className = application.getConfig().getProperty(
+                "grails.logging.stackTraceFiltererClass", DefaultStackTraceFilterer.class.getName());
+            filterer = (StackTraceFilterer) ClassUtils.forName(className, ClassUtils.getDefaultClassLoader()).newInstance();
+
         }
         catch (Throwable t) {
             logger.error("Problem instantiating StackTracePrinter class, using default: " + t.getMessage());

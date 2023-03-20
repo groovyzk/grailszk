@@ -1,6 +1,8 @@
 package org.zkoss.web.util.resource;
 
+import grails.config.Config;
 import grails.core.GrailsApplication;
+import grails.util.Holders;
 import groovy.lang.Writable;
 import groovy.text.Template;
 import org.apache.commons.logging.Log;
@@ -20,6 +22,7 @@ import org.zkoss.zk.ui.metainfo.Parser;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
@@ -112,8 +115,8 @@ public class GrailsContentLoader extends ResourceLoader<PageDefinition> {
 
     private PageDefinition parse(final String path, final org.springframework.core.io.Resource resource,
                                  final Object extra) throws Throwable {
-        final Map<?, ?> config = grailsApplication.getConfig().flatten();
-        final Boolean disable = (Boolean)config.get(CONFIG_ZKGRAILS_TAGLIB_DISABLE);
+        final Config config = grailsApplication.getConfig();
+        final Boolean disable = config.getProperty(CONFIG_ZKGRAILS_TAGLIB_DISABLE, Boolean.class);
         final Locator locator = (Locator)((extra != null) ? extra : PageDefinitions.getLocator(webApp, path));
         if (disable != null && disable) {
             return new Parser(webApp, locator).parse(new InputStreamReader(resource.getInputStream()), path);
@@ -133,13 +136,14 @@ public class GrailsContentLoader extends ResourceLoader<PageDefinition> {
     @Override
     protected PageDefinition parse(final String path, final File file, final Object extra) throws Exception {
         final GrailsApplication grailsApplication = (GrailsApplication) appCtx.getBean("grailsApplication");
-        final Map<?, ?> config = grailsApplication.getConfig().flatten();
-        final Boolean disable = (Boolean) config.get(CONFIG_ZKGRAILS_TAGLIB_DISABLE);
+        final Config config = grailsApplication.getConfig();
+        final Boolean disable = config.getProperty(CONFIG_ZKGRAILS_TAGLIB_DISABLE, Boolean.class);
+
         final Locator locator = (Locator)((extra != null) ? extra : PageDefinitions.getLocator(webApp, path));
         if (disable != null && disable) {
             return new Parser(webApp, locator).parse(file, path);
         }
-        final StringReader reader = preprocessGSP(config, file.length(), new FileInputStream(file));
+        final StringReader reader = preprocessGSP(config, file.length(), Files.newInputStream(file.toPath()));
         final PageDefinition pgdef = new Parser(webApp, locator).parse(reader, Servlets.getExtension(path));
         pgdef.setRequestPath(path);
         return pgdef;
