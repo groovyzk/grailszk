@@ -402,9 +402,9 @@ public class GrailsComposer extends GenericForwardComposer<Component> {
         }
     }
 
-    /**
-     * injectable APIs
-    **/
+    //
+    //injectable APIs
+    //
 
     public Object get_() {
         return new JQueryExtender();

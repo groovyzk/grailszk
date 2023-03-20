@@ -45,10 +45,7 @@ import static org.springframework.web.context.support.WebApplicationContextUtils
  * <li>Invoke {@link #get} to load the resource.</li>
  * </ol>
  *
- * @see <a href="https://github.com/zkoss/zk/blob/master/zweb/src/org/zkoss/web/util/resource/ResourceCaches.java"/>
- * ResourceCaches.java Original class
- * </a>
- *
+ * @see <a href="https://github.com/zkoss/zk/blob/master/zweb/src/org/zkoss/web/util/resource/ResourceCaches.java">ResourceCaches.java Original ZKoss Class</a>
  * @author tomyeh
  */
 public class ResourceCaches {
@@ -65,10 +62,14 @@ public class ResourceCaches {
      *
      * @param cache the resource cache.
      * Note: its loader must extend from {@link ResourceLoader}.
+     * @param ctx ServletContext
      * @param path the URI path
      * @param extra the extra parameter that will be passed to
      * {@link ResourceLoader#parse(String,File,Object)} and
      * {@link ResourceLoader#parse(String,URL,Object)}
+     * @param cache ResourceCache
+     * @return The resource
+     * @param <V> the resoruce type
      */
     public static final <V>
     V get(ResourceCache<V> cache, ServletContext ctx, String path, Object extra) {
