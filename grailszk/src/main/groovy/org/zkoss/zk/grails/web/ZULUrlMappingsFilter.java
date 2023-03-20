@@ -253,8 +253,7 @@ public class ZULUrlMappingsFilter extends OncePerRequestFilter {
                         if (info.isParsingRequest()) {
                             webRequest.informParameterCreationListeners();
                         }
-                        // TODO: verify
-                        String forwardUrl = UrlMappingUtils.forwardRequestForUrlMappingInfo(request, response, info);
+                        String forwardUrl = UrlMappingUtils.forwardRequestForUrlMappingInfo(request, response, info, Collections.emptyMap(), true);
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Matched URI [" + uri + "] to URL mapping [" + info + "], forwarding to [" + forwardUrl + "] with response [" + response.getClass() + "]");
                         }
