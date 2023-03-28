@@ -67,15 +67,19 @@ dependencies {
 }
 
 configurations.all {
+    exclude group: "org.zkoss.zk", module: "zkwebfragment"
     exclude group: "org.slf4j", module: "slf4j-jdk14"
 }
 ```
+> **Warning**:
+> It's important to exclude `zkwebfragment` dependency otherwise it might cause conflicts in the deployed war.
+> See [Deploy WAR to Apache Tomcat: Content Encoding Error](https://github.com/groovyzk/grailszk/issues/20)
 
 gradle.properties (see available versions):
 
 ```properties
 zkVersion=9.6.0.1
-grailszkVersion=4.2.0
+grailszkVersion=4.2.3
 ```
 
 ### Spring Security
