@@ -8,16 +8,10 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.CustomScopeConfigurer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
-import org.springframework.boot.web.servlet.ServletRegistrationBean
-import org.springframework.boot.web.servlet.filter.OrderedFilter
-import org.springframework.core.Ordered
 import org.springframework.core.io.FileSystemResource
 import org.zkoss.lang.Library
-import org.zkoss.zk.au.http.DHtmlUpdateServlet
 import org.zkoss.zk.grails.DesktopCounter
 import org.zkoss.zk.grails.ZkBuilder
-import org.zkoss.zk.grails.ZkConfigHelper
 import org.zkoss.zk.grails.artefacts.*
 import org.zkoss.zk.grails.composer.GrailsBindComposer
 import org.zkoss.zk.grails.composer.JQueryComposer
@@ -31,14 +25,8 @@ import org.zkoss.zk.grails.scope.PageScope
 import org.zkoss.zk.grails.select.JQuery
 import org.zkoss.zk.grails.web.ComposerMapping
 import org.zkoss.zk.grails.web.ZKGrailsOpenSessionInViewFilter
-import org.zkoss.zk.grails.web.ZKGrailsPageFilter
-import org.zkoss.zk.grails.web.ZULUrlMappingsFilter
 import org.zkoss.zk.ui.Component
 import org.zkoss.zk.ui.Executions
-import org.zkoss.zk.ui.http.DHtmlLayoutServlet
-import org.zkoss.zk.ui.http.HttpSessionListener
-
-import javax.servlet.DispatcherType
 
 @Slf4j
 class GrailszkGrailsPlugin extends Plugin {
@@ -174,55 +162,9 @@ Chanwit Kaewkasi <chanwit@gmail.com>: Original author of ZKGrails (versions 2.5.
             bean.autowire = "byName"
         }
 
-        // web.xml
-        // Filter
-        //
-        // e.g. ["zul"]
-        //
-        def supportExts = ZkConfigHelper.supportExtensions
-        boolean supportsAsync = grailsApplication.metadata.getServletVersion() >= "3.0"
-
-        //
-        // e.g. ["*.zul", "/zkau/*"]
-        //
-        def filterUrls = supportExts.collect{ "*." + it } + ["/zkau/*"]
-        def urls = supportExts.collect { "*.$it" } + ["*.zul", "*.dsp", "*.zhtml", "*.xml2html"]
-
-        // Servlet
-        auEngine(ServletRegistrationBean, new DHtmlUpdateServlet(), "/zkau/*")
-
-        zkLoader(ServletRegistrationBean, new DHtmlLayoutServlet(), urls as String[]) {
-            initParameters = [ "update-uri": "/zkau", "compress": "false" ]
-            loadOnStartup = 0
-        }
-
         GOSIVFilter(FilterRegistrationBean) {
             filter = bean(ZKGrailsOpenSessionInViewFilter)
             urlPatterns = filterUrls
-        }
-
-        pageFilter(FilterRegistrationBean) {
-            name = "sitemesh"
-            filter = bean(ZKGrailsPageFilter)
-            urlPatterns = ["/*"]
-            order = OrderedFilter.HIGHEST_PRECEDENCE
-            asyncSupported = supportsAsync
-            dispatcherTypes = EnumSet.of(DispatcherType.REQUEST, DispatcherType.ERROR)
-        }
-
-        urlMappingFilter(FilterRegistrationBean) {
-            name = "urlMapping"
-            filter = bean(ZULUrlMappingsFilter)
-            urlPatterns = ["/*"]
-            order = OrderedFilter.LOWEST_PRECEDENCE
-            asyncSupported = supportsAsync
-            dispatcherTypes = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD)
-        }
-
-        // Listener
-        ZkSessionCleaner(ServletListenerRegistrationBean) {
-            listener = bean(HttpSessionListener)
-            order = Ordered.HIGHEST_PRECEDENCE
         }
 
         //
